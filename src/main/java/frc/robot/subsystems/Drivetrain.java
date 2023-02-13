@@ -50,6 +50,9 @@ public class Drivetrain extends SubsystemBase {
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
     r2 = new CANSparkMax(CANConstants.kR2Port, MotorType.kBrushless);
 
+    l1.setInverted(true);
+    r1.setInverted(false);
+
     l2.follow(l1);
     r2.follow(r1);
 
@@ -85,10 +88,14 @@ public class Drivetrain extends SubsystemBase {
   public CommandBase tempdrive(DoubleSupplier x, DoubleSupplier z) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
-    return run(
+    return this.run(
         () -> {
           drive.arcadeDrive(x.getAsDouble(), z.getAsDouble());
         });
+  }
+
+  public void tempDrive2(double x, double z){
+    drive.arcadeDrive(x, z);
   }
 
   @Override
