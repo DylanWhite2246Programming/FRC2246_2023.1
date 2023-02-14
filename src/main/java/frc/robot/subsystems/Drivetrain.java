@@ -31,7 +31,6 @@ public class Drivetrain extends SubsystemBase {
   ShuffleboardTab tab = Shuffleboard.getTab("Telemetry Tab");
 
   private CANSparkMax l1, l2, r1, r2;
-  private MotorControllerGroup leftMotors, rightMotors;
 
   private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
   private RelativeEncoder[] reArray;
@@ -53,11 +52,11 @@ public class Drivetrain extends SubsystemBase {
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
     r2 = new CANSparkMax(CANConstants.kR2Port, MotorType.kBrushless);
 
-    leftMotors = new MotorControllerGroup(l1, l2);
-    rightMotors = new MotorControllerGroup(r1, r2);
+    l2.follow(l1);
+    r2.follow(r1);
 
-    leftMotors.setInverted(false);
-    rightMotors.setInverted(true);
+    l1.setInverted(false);
+    r1.setInverted(true);
 
     l1encoder = l1.getEncoder();
     l2encoder = l2.getEncoder();
@@ -70,7 +69,7 @@ public class Drivetrain extends SubsystemBase {
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
     }
 
-    drive = new DifferentialDrive(leftMotors, rightMotors);
+    drive = new DifferentialDrive(l1, r1);
     drive.setSafetyEnabled(false);
 
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
@@ -105,6 +104,7 @@ public class Drivetrain extends SubsystemBase {
     return this.run(
         () -> {
           drive.arcadeDrive(x.getAsDouble(), z.getAsDouble());
+          drive.feed();
         });
   }
 

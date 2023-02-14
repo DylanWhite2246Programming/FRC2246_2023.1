@@ -7,7 +7,6 @@ package frc.robot;
 import frc.robot.Team2246.Drivestation;
 import frc.robot.subsystems.Drivetrain;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -25,8 +24,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-   //drivetrain.setDefaultCommand(drivetrain.tempdrive(drivestation::getLeftY, drivestation::getRightX));
-   drivetrain.setDefaultCommand(new RunCommand(()->drivetrain.tempDrive2(drivestation.getLeftY(), 0), drivetrain));
+   drivetrain.setDefaultCommand(drivetrain.tempdrive(drivestation::getLeftY, drivestation::getRightX));
     // Configure the trigger bindings
     configureBindings();
   }
