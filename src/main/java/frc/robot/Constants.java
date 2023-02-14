@@ -15,6 +15,7 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static final int[] pressure = new int[]{65,85};
   public static class CANConstants{
     public static final int kL1Port = 1;
     public static final int kL2Port = 2;
