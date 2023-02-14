@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.PowerAndPneumatics;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -21,6 +22,7 @@ public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
   private final Drivetrain drivetrain = new Drivetrain();
+  private final PowerAndPneumatics pp = new PowerAndPneumatics();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -38,7 +40,9 @@ public class RobotContainer {
    * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
    * joysticks}.
    */
-  private void configureBindings() {}
+  private void configureBindings() {
+    drivestation.s13.whileTrue(pp.turnOnCompressorCommand()).whileFalse(pp.turnOffCompressorCommand());
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
