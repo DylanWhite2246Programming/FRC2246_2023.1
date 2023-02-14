@@ -38,8 +38,8 @@ public final class Constants {
     //SOLENOIDS
     public static final int kClawForwardPort = 1;
     public static final int kClawReversePort = 2;
-    public static final int kExtentionForwardPort = 3;
-    public static final int kExtentionReversePort = 4;
+    public static final int kBoomForwardPort = 3;
+    public static final int kBoomReversePort = 4;
       //RESERVED FOR TWO STAGED CLAW
     public static final int kBrakeForwardPort = 7;
     public static final int kBrakeReversePort = 8;
