@@ -19,13 +19,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   private final Drivestation drivestation = new Drivestation(0, 1, 2, 3);
+
   // The robot's subsystems and commands are defined here...
   private final Drivetrain drivetrain = new Drivetrain();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-   // drivetrain.setDefaultCommand(drivetrain.tempdrive(drivestation::getLeftY, drivestation::getRightX));
-   drivetrain.setDefaultCommand(new RunCommand(()->drivetrain.tempDrive2(drivestation.getLeftY(), drivestation.getRightX()), drivetrain));
+   //drivetrain.setDefaultCommand(drivetrain.tempdrive(drivestation::getLeftY, drivestation::getRightX));
+   drivetrain.setDefaultCommand(new RunCommand(()->drivetrain.tempDrive2(drivestation.getLeftY(), 0), drivetrain));
     // Configure the trigger bindings
     configureBindings();
   }
@@ -51,4 +52,6 @@ public class RobotContainer {
     //return Autos.exampleAuto(m_exampleSubsystem);
     return null;
   }
+
+  public void periodic(){}
 }

@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -14,12 +13,13 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -31,8 +31,11 @@ public class Drivetrain extends SubsystemBase {
   ShuffleboardTab tab = Shuffleboard.getTab("Telemetry Tab");
 
   private CANSparkMax l1, l2, r1, r2;
-  private static RelativeEncoder lencoder, rencoder;
-  private AHRS navx = new AHRS();
+  private MotorControllerGroup leftMotors, rightMotors;
+
+  private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
+  private RelativeEncoder[] reArray;
+  //private AHRS navx = new AHRS();
   DifferentialDrive drive;
 
   private static DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(RobotConstruction.kTrackWidth); 
@@ -50,35 +53,46 @@ public class Drivetrain extends SubsystemBase {
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
     r2 = new CANSparkMax(CANConstants.kR2Port, MotorType.kBrushless);
 
-    l1.setInverted(true);
-    r1.setInverted(false);
+    leftMotors = new MotorControllerGroup(l1, l2);
+    rightMotors = new MotorControllerGroup(r1, r2);
 
-    l2.follow(l1);
-    r2.follow(r1);
+    leftMotors.setInverted(false);
+    rightMotors.setInverted(true);
 
-    lencoder = l1.getEncoder();
-    rencoder = r1.getEncoder();
+    l1encoder = l1.getEncoder();
+    l2encoder = l2.getEncoder();
+    r1encoder = r1.getEncoder();
+    r2encoder = r2.getEncoder();
+    reArray = new RelativeEncoder[]{l1encoder,l2encoder,r1encoder,r2encoder};
 
-    drive = new DifferentialDrive(l1, l2);
+    for(RelativeEncoder i : reArray){
+      i.setPositionConversionFactor(RobotConstruction.kEncoderPositionConverionRate);
+      i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
+    }
+
+    drive = new DifferentialDrive(leftMotors, rightMotors);
+    drive.setSafetyEnabled(false);
+
+    tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
   }
 
   public DifferentialDriveKinematics getKinematics(){return kinematics;}
 
   public static DifferentialDriveWheelSpeeds getWheelSpeeds(){
-    return new DifferentialDriveWheelSpeeds(lencoder.getVelocity(), rencoder.getVelocity());
+    return new DifferentialDriveWheelSpeeds(l1encoder.getVelocity(), r1encoder.getVelocity());
   }
 
   public static ChassisSpeeds getChassisSpeed(){return kinematics.toChassisSpeeds(getWheelSpeeds());}
 
   public Pose2d getPose2d(){return new Pose2d();}//TODO change
 
-  public double getLeftDisplacement(){return lencoder.getPosition();}
-  public double getRightDisplacement(){return rencoder.getPosition();}
+  public double getLeftDisplacement(){return l1encoder.getPosition();}
+  public double getRightDisplacement(){return r1encoder.getPosition();}
 
-  public double getYaw(){return navx.getAngle();}
-  public double getPitch(){return (double)navx.getPitch();}
-  public Rotation2d getRotation2d(){return navx.getRotation2d();}
-  public double getTurnRate(){return navx.getRate();}
+  //public double getYaw(){return navx.getAngle();}
+  //public double getPitch(){return (double)navx.getPitch();}
+  //public Rotation2d getRotation2d(){return navx.getRotation2d();}
+  //public double getTurnRate(){return navx.getRate();}
 
   /**
    * Example command factory method.
@@ -96,6 +110,7 @@ public class Drivetrain extends SubsystemBase {
 
   public void tempDrive2(double x, double z){
     drive.arcadeDrive(x, z);
+    drive.feed();
   }
 
   @Override
