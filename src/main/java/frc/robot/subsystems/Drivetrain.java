@@ -76,6 +76,8 @@ public class Drivetrain extends SubsystemBase {
     drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
     drive.setSafetyEnabled(false);
 
+    odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
+
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
   }
 
@@ -112,11 +114,6 @@ public class Drivetrain extends SubsystemBase {
     });
   }
 
-  /**
-   * Example command factory method.
-   *
-   * @return a command
-   */
   public CommandBase drivePorpotionaly(DoubleSupplier x, DoubleSupplier z) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.

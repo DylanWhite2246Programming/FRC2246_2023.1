@@ -99,7 +99,7 @@ public class Boom extends ProfiledPIDSubsystem {
   }
   
   public CommandBase moveToBackTopPosition(){return moveArm(0).andThen(extendBoom());}
-  public CommandBase moveToBackMiddlePostion(){return moveArm(0).andThen(extendBoom());}
+  public CommandBase moveToBackMiddlePostion(){return moveArm(0).andThen(retractBoom());}
   public CommandBase moveToBackLowPosition(){return moveArm(0).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(){return moveArm(0).andThen(()->disable());}
   public CommandBase moveToIntakePosition(){return moveArm(0).andThen(extendBoom());}
