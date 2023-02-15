@@ -5,6 +5,9 @@
 package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -56,7 +59,8 @@ public final class Constants {
   }
   public static class RobotConstruction{
     public static final double kTrackWidth = Units.inchesToMeters(0);
-    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71);
-    public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60;
+    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71);//TODO verify these values
+    public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60; //TODO verify these values
+    public static final Transform3d robotToCam = new Transform3d(new Translation3d(), new Rotation3d()); //TODO put value here
   }
 }
