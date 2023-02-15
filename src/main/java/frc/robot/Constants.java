@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -43,6 +44,12 @@ public final class Constants {
       //RESERVED FOR TWO STAGED CLAW
     public static final int kBrakeForwardPort = 7;
     public static final int kBrakeReversePort = 8;
+  }
+  public static class AutonControllers{
+    public static final PIDController leftPositionController = 
+      new PIDController(0, 0, 0);
+    public static final PIDController rightPositionController = 
+      new PIDController(0, 0, 0);
   }
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;

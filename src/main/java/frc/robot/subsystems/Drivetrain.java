@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -13,6 +14,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
@@ -31,17 +33,19 @@ public class Drivetrain extends SubsystemBase {
   ShuffleboardTab tab = Shuffleboard.getTab("Telemetry Tab");
 
   private CANSparkMax l1, l2, r1, r2;
+  private MotorControllerGroup lMotorGroup, rMotorGroup;
 
   private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
   private RelativeEncoder[] reArray;
-  //private AHRS navx = new AHRS();
-  DifferentialDrive drive;
+  private AHRS navx = new AHRS();
+  private DifferentialDrive drive;
 
   private static DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(RobotConstruction.kTrackWidth); 
   private DifferentialDriveOdometry odometry;
 
-  private PIDController leftController = new PIDController(0, 0, 0);
-  private PIDController rightController = new PIDController(0, 0, 0);
+  private PIDController leftVelocityController = new PIDController(0, 0, 0);
+  private PIDController rightVelocityController = new PIDController(0, 0, 0);
+
   private SimpleMotorFeedforward leftFeedForward = new SimpleMotorFeedforward(0, 0, 0);
   private SimpleMotorFeedforward rightFeedForward = new SimpleMotorFeedforward(0, 0, 0);
 
@@ -52,11 +56,11 @@ public class Drivetrain extends SubsystemBase {
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
     r2 = new CANSparkMax(CANConstants.kR2Port, MotorType.kBrushless);
 
-    l2.follow(l1);
-    r2.follow(r1);
+    lMotorGroup = new MotorControllerGroup(l1, l2);
+    rMotorGroup = new MotorControllerGroup(r1, r2);
 
-    l1.setInverted(false);
-    r1.setInverted(true);
+    lMotorGroup.setInverted(false);
+    rMotorGroup.setInverted(true);
 
     l1encoder = l1.getEncoder();
     l2encoder = l2.getEncoder();
@@ -69,7 +73,7 @@ public class Drivetrain extends SubsystemBase {
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
     }
 
-    drive = new DifferentialDrive(l1, r1);
+    drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
     drive.setSafetyEnabled(false);
 
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
@@ -88,17 +92,32 @@ public class Drivetrain extends SubsystemBase {
   public double getLeftDisplacement(){return l1encoder.getPosition();}
   public double getRightDisplacement(){return r1encoder.getPosition();}
 
-  //public double getYaw(){return navx.getAngle();}
-  //public double getPitch(){return (double)navx.getPitch();}
-  //public Rotation2d getRotation2d(){return navx.getRotation2d();}
-  //public double getTurnRate(){return navx.getRate();}
+  public double getLeftVelocity(){return l1encoder.getVelocity();}
+  public double getRightVelocity(){return r1encoder.getVelocity();}
+
+  public double getYaw(){return navx.getAngle();}
+  public double getPitch(){return (double)navx.getPitch();}
+  public Rotation2d getRotation2d(){return navx.getRotation2d();}
+  public double getTurnRate(){return navx.getRate();}
+
+  public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z){
+    return this.run(()->{
+      DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble(), 0, z.getAsDouble()));
+      driveVolts( //this call also feeds drivetrain
+        leftFeedForward.calculate(speeds.leftMetersPerSecond)
+          +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 
+        rightFeedForward.calculate(speeds.rightMetersPerSecond)
+          +rightVelocityController.calculate(getWheelSpeeds().rightMetersPerSecond, speeds.rightMetersPerSecond)
+      );
+    });
+  }
 
   /**
    * Example command factory method.
    *
    * @return a command
    */
-  public CommandBase tempdrive(DoubleSupplier x, DoubleSupplier z) {
+  public CommandBase drivePorpotionaly(DoubleSupplier x, DoubleSupplier z) {
     // Inline construction of command goes here.
     // Subsystem::RunOnce implicitly requires `this` subsystem.
     return this.run(
@@ -108,8 +127,9 @@ public class Drivetrain extends SubsystemBase {
         });
   }
 
-  public void tempDrive2(double x, double z){
-    drive.arcadeDrive(x, z);
+  public void driveVolts(double lVolt, double rVolt){
+    lMotorGroup.setVoltage(lVolt);
+    rMotorGroup.setVoltage(rVolt);
     drive.feed();
   }
 
