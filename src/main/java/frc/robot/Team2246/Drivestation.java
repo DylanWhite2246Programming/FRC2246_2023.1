@@ -65,7 +65,7 @@ public class Drivestation extends SubsystemBase {
   public final Trigger ls10 = new Trigger(()->lJoy.getRawButton(10));
 
   public  double getLeftX(){return tune(lJoy.getX());}
-  public  double getLeftY(){return tune(lJoy.getY());}
+  public  double getLeftY(){return -tune(lJoy.getY());}
   public double getLeftSlider(){return lJoy.getThrottle();}
 
   //right joystick
@@ -87,7 +87,7 @@ public class Drivestation extends SubsystemBase {
   public final Trigger rsPOVdown  = new Trigger(()->getRightPov()==180);
   public final Trigger rsPOVleft  = new Trigger(()->getRightPov()==270);
 
-  public double getRightX(){return tune(rJoy.getX());}
+  public double getRightX(){return -tune(rJoy.getX());}
   public double getRightY(){return tune(rJoy.getY());}
   public double getRightZ(){return tune(rJoy.getZ());}
   public double getRightSlider(){return rJoy.getThrottle();}
