@@ -37,6 +37,7 @@ public class Drivestation extends SubsystemBase {
   public  final Trigger s11  = new Trigger(()->buttonboardA.getRawButton(5));
   public  final Trigger s12  = new Trigger(()->buttonboardA.getRawButton(6));
   public  final Trigger s13  = new Trigger(()->buttonboardA.getRawButton(7));
+  public  final Trigger brake = new Trigger(()->buttonboardA.getRawButton(8));
  
   public final Trigger b00  = new Trigger(()->buttonboardB.getRawButton( 0));
   public final Trigger b01  = new Trigger(()->buttonboardB.getRawButton( 1));
