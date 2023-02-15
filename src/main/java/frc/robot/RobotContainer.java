@@ -41,7 +41,8 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    drivestation.s13.whileTrue(pp.turnOnCompressorCommand()).whileFalse(pp.turnOffCompressorCommand());
+    drivestation.s13.whileTrue(pp.turnOnCompressorCommand())
+      .whileFalse(pp.turnOffCompressorCommand());
   }
 
   /**

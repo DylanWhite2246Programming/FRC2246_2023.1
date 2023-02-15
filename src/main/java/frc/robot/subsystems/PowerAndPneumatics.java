@@ -27,6 +27,8 @@ public class PowerAndPneumatics extends SubsystemBase {
     compressor = ph.makeCompressor();
   }
 
+  public PneumaticHub getPH(){return ph;} 
+
   /**
    * @param port the port to querry
    * @return the amp draw of a given port
@@ -65,9 +67,9 @@ public class PowerAndPneumatics extends SubsystemBase {
    */
   public double getPreasure(){return compressor.getPressure();}//TODO Check this
   /**turns on compressor with predefined limits in Robot.Constants file */
-  public void turnOnCompressor(){compressor.enableAnalog(Constants.pressure[0], Constants.pressure[1]);}
+  public void turnOnCompressor(){compressor.enableAnalog(Constants.pressure[0], Constants.pressure[1]);System.out.println("on");}
   /**turns off compressor */
-  public void turnOffCompressor(){compressor.disable();}
+  public void turnOffCompressor(){compressor.disable();System.out.println("off");}
   /**turns on compressor with predefined limits in Robot.Constants file */
   public CommandBase turnOnCompressorCommand(){return runOnce(()->turnOnCompressor());}
   /**turns off compressor */

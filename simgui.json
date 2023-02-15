@@ -12,6 +12,13 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Shuffleboard/Telemetry Tab/DifferentialDrive[1]": "DifferentialDrive"
+    },
+    "windows": {
+      "/Shuffleboard/Telemetry Tab/DifferentialDrive[1]": {
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables": {
