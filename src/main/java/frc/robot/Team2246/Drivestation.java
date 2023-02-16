@@ -91,7 +91,7 @@ public class Drivestation extends SubsystemBase {
   public double getRightY(){return tune(rJoy.getY());}
   public double getRightZ(){return tune(rJoy.getZ());}
   public double getRightSlider(){return rJoy.getThrottle();}
-  public static int getRightPov(){return rJoy.getPOV();}
+  public int getRightPov(){return rJoy.getPOV();}
 
 
 
