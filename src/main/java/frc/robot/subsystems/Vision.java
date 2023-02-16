@@ -11,6 +11,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -53,6 +54,11 @@ public class Vision extends SubsystemBase {
       return photonPoseEstimator.update();
     }//Stolen from photonlib example code
 
+    public PhotonPipelineResult getResults(int pipe){
+      cam.setDriverMode(false);
+      cam.setPipelineIndex(pipe);
+      return cam.getLatestResult();
+    }
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
+import frc.robot.commands.alignToGamePiece;
 import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
@@ -49,6 +50,7 @@ public class RobotContainer {
       .whileFalse(pp.turnOffCompressorCommand());
     drivestation.b20().onTrue(boom.extendBoom());
     drivestation.b21().onTrue(boom.retractBoom());
+    new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, ()->0));
   }
 
   /**
@@ -62,5 +64,5 @@ public class RobotContainer {
     return null;
   }
 
-  public void periodic(){System.out.println(drivestation.s13().getAsBoolean());}
+  public void periodic(){}
 }
