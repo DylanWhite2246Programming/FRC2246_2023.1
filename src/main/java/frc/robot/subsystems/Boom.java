@@ -13,7 +13,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
@@ -30,6 +29,7 @@ public class Boom extends ProfiledPIDSubsystem {
   private MotorControllerGroup mgroup;
   private DutyCycleEncoder absencoder;
   private DigitalInput aLimit, bLimit;
+  private boolean limitOveride = false;
 
   private ArmFeedforward feedforward = new ArmFeedforward(0, 0, 0);
   
@@ -50,7 +50,7 @@ public class Boom extends ProfiledPIDSubsystem {
     );
 
   /** Creates a new Boom. */
-  public Boom(PneumaticHub ph) {
+  public Boom() {
     super(
         // The ProfiledPIDController used by the subsystem
         new ProfiledPIDController(
@@ -73,6 +73,8 @@ public class Boom extends ProfiledPIDSubsystem {
   }
 
   public boolean getBoomLimit(){return aLimit.get()/*|| bLimit.get()*/;}
+  
+  public CommandBase setOverride(boolean value){return runOnce(()->this.limitOveride=value);}
 
   public CommandBase openClaw(){return runOnce(()->clawSolenoid.set(Value.kForward));}
   public CommandBase closeClaw(){return runOnce(()->clawSolenoid.set(Value.kReverse));}
@@ -94,7 +96,7 @@ public class Boom extends ProfiledPIDSubsystem {
       //if collision will not happen move arm
       setGoalCommand(value), 
       //when the goal and curent position are on differnt sides of the robot the arm must be retracted
-      ()->(Math.signum(value)!=Math.signum(this.getMeasurement()))||value==0
+      ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limitOveride
     ).until(getController()::atGoal);
   }
   

@@ -26,72 +26,72 @@ public class Drivestation extends SubsystemBase {
     rJoy = new Joystick(rJoyPort);
   }
 
-  private static double tune(double x){return x*x*Math.signum(x);}
+  private static double tune(double x){return Math.abs(x)>.0275? x*x*Math.signum(x):0;}
   
   //ButtonBoard
-  public  final Trigger s00  = new Trigger(()->buttonboardA.getRawButton(0));
-  public  final Trigger s01  = new Trigger(()->buttonboardA.getRawButton(1));
-  public  final Trigger s02  = new Trigger(()->buttonboardA.getRawButton(2));
-  public  final Trigger s03  = new Trigger(()->buttonboardA.getRawButton(3));
-  public  final Trigger s10  = new Trigger(()->buttonboardA.getRawButton(4));
-  public  final Trigger s11  = new Trigger(()->buttonboardA.getRawButton(5));
-  public  final Trigger s12  = new Trigger(()->buttonboardA.getRawButton(6));
-  public  final Trigger s13  = new Trigger(()->buttonboardA.getRawButton(7));
+  public Trigger s00(){return  new Trigger(()->buttonboardA.getRawButton(1));}
+  public Trigger s01(){return  new Trigger(()->buttonboardA.getRawButton(2));}
+  public Trigger s02(){return  new Trigger(()->buttonboardA.getRawButton(3));}
+  public Trigger s03(){return  new Trigger(()->buttonboardA.getRawButton(4));}
+  public Trigger s10(){return  new Trigger(()->buttonboardA.getRawButton(5));}
+  public Trigger s11(){return  new Trigger(()->buttonboardA.getRawButton(6));}
+  public Trigger s12(){return  new Trigger(()->buttonboardA.getRawButton(7));}
+  public Trigger s13(){return  new Trigger(()->buttonboardA.getRawButton(8));}
  
-  public final Trigger b00  = new Trigger(()->buttonboardB.getRawButton( 0));
-  public final Trigger b01  = new Trigger(()->buttonboardB.getRawButton( 1));
-  public final Trigger b02  = new Trigger(()->buttonboardB.getRawButton( 2));
-  public final Trigger b03  = new Trigger(()->buttonboardB.getRawButton( 3));
-  public final Trigger b10  = new Trigger(()->buttonboardB.getRawButton( 4));
-  public final Trigger b11  = new Trigger(()->buttonboardB.getRawButton( 5));
-  public final Trigger b12  = new Trigger(()->buttonboardB.getRawButton( 6));
-  public final Trigger b13  = new Trigger(()->buttonboardB.getRawButton( 7));
-  public final Trigger b20  = new Trigger(()->buttonboardB.getRawButton( 8));
-  public final Trigger b21  = new Trigger(()->buttonboardB.getRawButton( 9));
-  public final Trigger b22  = new Trigger(()->buttonboardB.getRawButton(10));
-  public final Trigger b23  = new Trigger(()->buttonboardB.getRawButton(11));
+  public Trigger b00(){return new Trigger(()->buttonboardB.getRawButton( 1));}
+  public Trigger b01(){return new Trigger(()->buttonboardB.getRawButton( 2));}
+  public Trigger b02(){return new Trigger(()->buttonboardB.getRawButton( 3));}
+  public Trigger b03(){return new Trigger(()->buttonboardB.getRawButton( 4));}
+  public Trigger b10(){return new Trigger(()->buttonboardB.getRawButton( 5));}
+  public Trigger b11(){return new Trigger(()->buttonboardB.getRawButton( 6));}
+  public Trigger b12(){return new Trigger(()->buttonboardB.getRawButton( 7));}
+  public Trigger b13(){return new Trigger(()->buttonboardB.getRawButton( 8));}
+  public Trigger b20(){return new Trigger(()->buttonboardB.getRawButton( 9));}
+  public Trigger b21(){return new Trigger(()->buttonboardB.getRawButton( 10));}
+  public Trigger b22(){return new Trigger(()->buttonboardB.getRawButton(11));}
+  public Trigger b23(){return new Trigger(()->buttonboardB.getRawButton(12));}
 
   //Left Stick
-  public final Trigger ls0  = new Trigger(()->lJoy.getRawButton(0));
-  public final Trigger ls1  = new Trigger(()->lJoy.getRawButton(1));
-  public final Trigger ls2  = new Trigger(()->lJoy.getRawButton(2));
-  public final Trigger ls3  = new Trigger(()->lJoy.getRawButton(3));
-  public final Trigger ls4  = new Trigger(()->lJoy.getRawButton(4));
-  public final Trigger ls5  = new Trigger(()->lJoy.getRawButton(5));
-  public final Trigger ls6  = new Trigger(()->lJoy.getRawButton(6));
-  public final Trigger ls7  = new Trigger(()->lJoy.getRawButton(7));
-  public final Trigger ls8  = new Trigger(()->lJoy.getRawButton(8));
-  public final Trigger ls9  = new Trigger(()->lJoy.getRawButton(9));
-  public final Trigger ls10 = new Trigger(()->lJoy.getRawButton(10));
+  public Trigger ls0 (){return new Trigger(()->lJoy.getRawButton(1));}
+  public Trigger ls1 (){return new Trigger(()->lJoy.getRawButton(2));}
+  public Trigger ls2 (){return new Trigger(()->lJoy.getRawButton(3));}
+  public Trigger ls3 (){return new Trigger(()->lJoy.getRawButton(4));}
+  public Trigger ls4 (){return new Trigger(()->lJoy.getRawButton(5));}
+  public Trigger ls5 (){return new Trigger(()->lJoy.getRawButton(6));}
+  public Trigger ls6 (){return new Trigger(()->lJoy.getRawButton(7));}
+  public Trigger ls7 (){return new Trigger(()->lJoy.getRawButton(8));}
+  public Trigger ls8 (){return new Trigger(()->lJoy.getRawButton(9));}
+  public Trigger ls9 (){return new Trigger(()->lJoy.getRawButton(10));}
+  public Trigger ls10(){return new Trigger(()->lJoy.getRawButton(11));}
 
   public  double getLeftX(){return tune(lJoy.getX());}
-  public  double getLeftY(){return tune(lJoy.getY());}
+  public  double getLeftY(){return -tune(lJoy.getY());}
   public double getLeftSlider(){return lJoy.getThrottle();}
 
   //right joystick
-  public final Trigger rs0  = new Trigger(()->rJoy.getRawButton(0));
-  public final Trigger rs1  = new Trigger(()->rJoy.getRawButton(1));
-  public final Trigger rs2  = new Trigger(()->rJoy.getRawButton(2));
-  public final Trigger rs3  = new Trigger(()->rJoy.getRawButton(3));
-  public final Trigger rs4  = new Trigger(()->rJoy.getRawButton(4));
-  public final Trigger rs5  = new Trigger(()->rJoy.getRawButton(5));
-  public final Trigger rs6  = new Trigger(()->rJoy.getRawButton(6));
-  public final Trigger rs7  = new Trigger(()->rJoy.getRawButton(7));
-  public final Trigger rs8  = new Trigger(()->rJoy.getRawButton(8));
-  public final Trigger rs9  = new Trigger(()->rJoy.getRawButton(9));
-  public final Trigger rs10 = new Trigger(()->rJoy.getRawButton(10));
-  public final Trigger rs11 = new Trigger(()->rJoy.getRawButton(11));
+  public Trigger rs0 (){return new Trigger(()->rJoy.getRawButton(1));}
+  public Trigger rs1 (){return new Trigger(()->rJoy.getRawButton(2));}
+  public Trigger rs2 (){return new Trigger(()->rJoy.getRawButton(3));}
+  public Trigger rs3 (){return new Trigger(()->rJoy.getRawButton(4));}
+  public Trigger rs4 (){return new Trigger(()->rJoy.getRawButton(5));}
+  public Trigger rs5 (){return new Trigger(()->rJoy.getRawButton(6));}
+  public Trigger rs6 (){return new Trigger(()->rJoy.getRawButton(7));}
+  public Trigger rs7 (){return new Trigger(()->rJoy.getRawButton(8));}
+  public Trigger rs8 (){return new Trigger(()->rJoy.getRawButton(9));}
+  public Trigger rs9 (){return new Trigger(()->rJoy.getRawButton(10));}
+  public Trigger rs10(){return new Trigger(()->rJoy.getRawButton(11));}
+  public Trigger rs11(){return new Trigger(()->rJoy.getRawButton(12));}
 
-  public final Trigger rsPOVup    = new Trigger(()->getRightPov()==0);
-  public final Trigger rsPOVright = new Trigger(()->getRightPov()==90);
-  public final Trigger rsPOVdown  = new Trigger(()->getRightPov()==180);
-  public final Trigger rsPOVleft  = new Trigger(()->getRightPov()==270);
+  public Trigger rsPOVup   (){return new Trigger(()->getRightPov()==0);}
+  public Trigger rsPOVright(){return new Trigger(()->getRightPov()==90);}
+  public Trigger rsPOVdown (){return new Trigger(()->getRightPov()==180);}
+  public Trigger rsPOVleft (){return new Trigger(()->getRightPov()==270);}
 
-  public double getRightX(){return tune(rJoy.getX());}
+  public double getRightX(){return -tune(rJoy.getRawAxis(0));}
   public double getRightY(){return tune(rJoy.getY());}
   public double getRightZ(){return tune(rJoy.getZ());}
   public double getRightSlider(){return rJoy.getThrottle();}
-  public int getRightPov(){return rJoy.getPOV();}
+  public static int getRightPov(){return rJoy.getPOV();}
 
 
 

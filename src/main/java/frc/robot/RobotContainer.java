@@ -5,8 +5,10 @@
 package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
+import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
+import frc.robot.subsystems.Vision;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -21,7 +23,9 @@ public class RobotContainer {
   private final Drivestation drivestation = new Drivestation(0, 1, 2, 3);
 
   // The robot's subsystems and commands are defined here...
-  private final Drivetrain drivetrain = new Drivetrain();
+  private final Vision cam = new Vision();
+  private final Boom boom = new Boom();
+  private final Drivetrain drivetrain = new Drivetrain(cam);
   private final PowerAndPneumatics pp = new PowerAndPneumatics();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -41,8 +45,10 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    drivestation.s13.whileTrue(pp.turnOnCompressorCommand())
+    drivestation.s13().whileTrue(pp.turnOnCompressorCommand())
       .whileFalse(pp.turnOffCompressorCommand());
+    drivestation.b20().onTrue(boom.extendBoom());
+    drivestation.b21().onTrue(boom.retractBoom());
   }
 
   /**
@@ -56,5 +62,5 @@ public class RobotContainer {
     return null;
   }
 
-  public void periodic(){}
+  public void periodic(){System.out.println(drivestation.s13().getAsBoolean());}
 }

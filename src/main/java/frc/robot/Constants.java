@@ -40,10 +40,10 @@ public final class Constants {
     public static final int kBoomLimitSwitchPortA = 3;
     public static final int kBoomLimitSwitchPortB = 4;
     //SOLENOIDS
-    public static final int kClawForwardPort = 1;
-    public static final int kClawReversePort = 2;
-    public static final int kBoomForwardPort = 3;
-    public static final int kBoomReversePort = 4;
+    public static final int kClawForwardPort = 15;
+    public static final int kClawReversePort = 14;
+    public static final int kBoomForwardPort = 12;
+    public static final int kBoomReversePort = 13;
       //RESERVED FOR TWO STAGED CLAW
     public static final int kBrakeForwardPort = 7;
     public static final int kBrakeReversePort = 8;
@@ -58,7 +58,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
   }
   public static class RobotConstruction{
-    public static final double kTrackWidth = Units.inchesToMeters(0);
+    public static final double kTrackWidth = Units.inchesToMeters(22+(7/16));
     public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71);//TODO verify these values
     public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60; //TODO verify these values
     public static final Transform3d robotToCam = new Transform3d(new Translation3d(), new Rotation3d()); //TODO put value here

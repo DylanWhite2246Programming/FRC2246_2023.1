@@ -12,6 +12,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +20,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -31,26 +33,30 @@ import frc.robot.Constants.RobotConstruction;
 
 public class Drivetrain extends SubsystemBase {
   ShuffleboardTab tab = Shuffleboard.getTab("Telemetry Tab");
+  private Vision vision;
 
+  private double xScalar = 6.75, zScalar = 7;
   private CANSparkMax l1, l2, r1, r2;
   private MotorControllerGroup lMotorGroup, rMotorGroup;
+  private DifferentialDrive drive;
 
   private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
   private RelativeEncoder[] reArray;
+  
   private AHRS navx = new AHRS();
-  private DifferentialDrive drive;
 
   private static DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(RobotConstruction.kTrackWidth); 
   private DifferentialDriveOdometry odometry;
 
-  private PIDController leftVelocityController = new PIDController(0, 0, 0);
-  private PIDController rightVelocityController = new PIDController(0, 0, 0);
-
-  private SimpleMotorFeedforward leftFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  private SimpleMotorFeedforward rightFeedForward = new SimpleMotorFeedforward(0, 0, 0);
+  Constraints constraints = new Constraints(8, 1);
+  private ProfiledPIDController leftVelocityController  = new ProfiledPIDController(.060762, 0, 0, constraints);
+  private ProfiledPIDController rightVelocityController = new ProfiledPIDController(0.060762, 0, 0, constraints);
+  //old ks 12236
+  private SimpleMotorFeedforward leftFeedForward = new SimpleMotorFeedforward(.053405, 2.698, .32867);
+  private SimpleMotorFeedforward rightFeedForward = new SimpleMotorFeedforward(.053405, 2.698, .32857);
 
   /** Creates a new ExampleSubsystem. */
-  public Drivetrain() {
+  public Drivetrain(Vision cam) {
     l1 = new CANSparkMax(CANConstants.kL1Port, MotorType.kBrushless);
     l2 = new CANSparkMax(CANConstants.kL2Port, MotorType.kBrushless);
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
@@ -59,8 +65,13 @@ public class Drivetrain extends SubsystemBase {
     lMotorGroup = new MotorControllerGroup(l1, l2);
     rMotorGroup = new MotorControllerGroup(r1, r2);
 
+    vision = cam;
+
     lMotorGroup.setInverted(false);
-    rMotorGroup.setInverted(true);
+    rMotorGroup.setInverted(false);
+
+    drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
+    drive.setSafetyEnabled(false);
 
     l1encoder = l1.getEncoder();
     l2encoder = l2.getEncoder();
@@ -72,9 +83,6 @@ public class Drivetrain extends SubsystemBase {
       i.setPositionConversionFactor(RobotConstruction.kEncoderPositionConverionRate);
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
     }
-
-    drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
-    drive.setSafetyEnabled(false);
 
     odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
 
@@ -89,7 +97,7 @@ public class Drivetrain extends SubsystemBase {
 
   public static ChassisSpeeds getChassisSpeed(){return kinematics.toChassisSpeeds(getWheelSpeeds());}
 
-  public Pose2d getPose2d(){return new Pose2d();}//TODO change
+  public Pose2d getPose2d(){return odometry.getPoseMeters();}//TODO change
 
   public double getLeftDisplacement(){return l1encoder.getPosition();}
   public double getRightDisplacement(){return r1encoder.getPosition();}
@@ -104,7 +112,7 @@ public class Drivetrain extends SubsystemBase {
 
   public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z){
     return this.run(()->{
-      DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble(), 0, z.getAsDouble()));
+      DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
       driveVolts( //this call also feeds drivetrain
         leftFeedForward.calculate(speeds.leftMetersPerSecond)
           +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 
