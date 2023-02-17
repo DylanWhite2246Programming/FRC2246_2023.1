@@ -95,13 +95,8 @@ public class Boom extends ProfiledPIDSubsystem {
       //if collision will not happen move arm
       setGoalCommand(value), 
       //when the goal and curent position are on differnt sides of the robot the arm must be retracted
-<<<<<<< HEAD
-      ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limitOveride
-    );
-=======
       ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limOveride
-    ).until(getController()::atGoal);
->>>>>>> e04cce840931300c8e01b5d02af78a8c621aca62
+    );
   }
   
   public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
