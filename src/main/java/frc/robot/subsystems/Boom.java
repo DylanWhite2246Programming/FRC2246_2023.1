@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -29,7 +31,6 @@ public class Boom extends ProfiledPIDSubsystem {
   private MotorControllerGroup mgroup;
   private DutyCycleEncoder absencoder;
   private DigitalInput aLimit, bLimit;
-  private boolean limitOveride = false;
 
   private ArmFeedforward feedforward = new ArmFeedforward(0, 0, 0);
   
@@ -74,8 +75,6 @@ public class Boom extends ProfiledPIDSubsystem {
 
   public boolean getBoomLimit(){return aLimit.get()/*|| bLimit.get()*/;}
   
-  public CommandBase setOverride(boolean value){return runOnce(()->this.limitOveride=value);}
-
   public CommandBase openClaw(){return runOnce(()->clawSolenoid.set(Value.kForward));}
   public CommandBase closeClaw(){return runOnce(()->clawSolenoid.set(Value.kReverse));}
   public CommandBase extendBoom(){return runOnce(()->boomSolenoid.set(Value.kForward));}
@@ -84,8 +83,8 @@ public class Boom extends ProfiledPIDSubsystem {
   /**sets goal of pid loop */
   private CommandBase setGoalCommand(double goal){return runOnce(()->{setGoal(goal);enable();});}
 
-  /**moves arm to position given (in radians) also automatically retracts arm if needed */
-  private CommandBase moveArm(double value){
+  /**moves arm to position given (in radia ns) also automatically retracts arm if needed */
+  private CommandBase moveArm(double value, boolean limOveride){
     return new ConditionalCommand(
       //retract arm and wait for it to reach limit and then move arm
       new SequentialCommandGroup(
@@ -96,17 +95,22 @@ public class Boom extends ProfiledPIDSubsystem {
       //if collision will not happen move arm
       setGoalCommand(value), 
       //when the goal and curent position are on differnt sides of the robot the arm must be retracted
+<<<<<<< HEAD
       ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limitOveride
     );
+=======
+      ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limOveride
+    ).until(getController()::atGoal);
+>>>>>>> e04cce840931300c8e01b5d02af78a8c621aca62
   }
   
-  public CommandBase moveToBackTopPosition(){return moveArm(0).andThen(extendBoom());}
-  public CommandBase moveToBackMiddlePostion(){return moveArm(0).andThen(retractBoom());}
-  public CommandBase moveToBackLowPosition(){return moveArm(0).andThen(extendBoom());}
-  public CommandBase moveToZeroPosition(){return moveArm(0).andThen(()->disable());}
-  public CommandBase moveToIntakePosition(){return moveArm(0).andThen(extendBoom());}
-  public CommandBase moveToFrontGroudPosition(){return moveArm(0).andThen(extendBoom());}
-  public CommandBase moveToFrontMiddlePosition(){return moveArm(0).andThen(extendBoom());}
+  public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(()->disable());}
+  public CommandBase moveToIntakePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   
 
   @Override
