@@ -46,15 +46,20 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    Trigger boomLimitOveride = drivestation.s12();
     new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, ()->0));
     new Trigger(()->drivestation.getRightPov()==180).whileTrue(new alignToGamePiece(drivetrain, cam, 2, ()->0));
-    
+    drivestation.ls1().onTrue(boom.moveToZeroPosition(boomLimitOveride.getAsBoolean()));
+    drivestation.ls2().onTrue(boom.moveToFrontIntakePosition(boomLimitOveride.getAsBoolean()));
+    drivestation.ls3().onTrue(boom.moveToBackIntakePosition(boomLimitOveride.getAsBoolean()));
+    drivestation.ls4().onTrue(boom.openClaw());
+    drivestation.ls5().onTrue(boom.closeClaw());
+
     drivestation.s13().whileTrue(pp.turnOnCompressorCommand())
       .whileFalse(pp.turnOffCompressorCommand());
     
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());
-      Trigger boomLimitOveride = drivestation.s12();
     drivestation.b20().and(boomLimitOveride).onTrue(boom.extendBoom());
     drivestation.b21().and(boomLimitOveride).onTrue(boom.retractBoom());
     drivestation.b23().onTrue(boom.moveToBackTopPosition(boomLimitOveride.getAsBoolean()));

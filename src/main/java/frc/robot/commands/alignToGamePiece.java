@@ -17,8 +17,10 @@ import frc.robot.subsystems.Vision;
 public class alignToGamePiece extends PIDCommand {
   Drivetrain drivetrain; Vision vision;
   /** Creates a new alignToGamePeice. */
-  public alignToGamePiece(Drivetrain drivetrain, Vision vision, 
-    int gamePiece, DoubleSupplier magnitude){
+  public alignToGamePiece(
+    Drivetrain drivetrain, Vision vision, 
+    int gamePiece, DoubleSupplier magnitude
+  ){
     super(
       // The controller that the command will use
       new PIDController(.2, 0, .01),
