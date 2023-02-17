@@ -133,7 +133,6 @@ public class Drivetrain extends SubsystemBase {
     return this.run(
         () -> {
           drive.arcadeDrive(x.getAsDouble(), z.getAsDouble());
-          drive.feed();
         });
   }
 

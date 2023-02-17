@@ -90,14 +90,14 @@ public class Boom extends ProfiledPIDSubsystem {
       //retract arm and wait for it to reach limit and then move arm
       new SequentialCommandGroup(
         retractBoom(),
-        new WaitUntilCommand(this::getBoomLimit).withTimeout(3),//TODO consider using a limit switch overide. 
+        new WaitUntilCommand(this::getBoomLimit),
         setGoalCommand(value)
       ),
       //if collision will not happen move arm
       setGoalCommand(value), 
       //when the goal and curent position are on differnt sides of the robot the arm must be retracted
       ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limitOveride
-    ).until(getController()::atGoal);
+    );
   }
   
   public CommandBase moveToBackTopPosition(){return moveArm(0).andThen(extendBoom());}
