@@ -52,35 +52,35 @@ public class Drivestation extends SubsystemBase {
   public Trigger b23(){return new Trigger(()->buttonboardB.getRawButton(12));}
 
   //Left Stick
-  public Trigger ls0 (){return new Trigger(()->lJoy.getRawButton(1));}
-  public Trigger ls1 (){return new Trigger(()->lJoy.getRawButton(2));}
-  public Trigger ls2 (){return new Trigger(()->lJoy.getRawButton(3));}
-  public Trigger ls3 (){return new Trigger(()->lJoy.getRawButton(4));}
-  public Trigger ls4 (){return new Trigger(()->lJoy.getRawButton(5));}
-  public Trigger ls5 (){return new Trigger(()->lJoy.getRawButton(6));}
-  public Trigger ls6 (){return new Trigger(()->lJoy.getRawButton(7));}
-  public Trigger ls7 (){return new Trigger(()->lJoy.getRawButton(8));}
-  public Trigger ls8 (){return new Trigger(()->lJoy.getRawButton(9));}
-  public Trigger ls9 (){return new Trigger(()->lJoy.getRawButton(10));}
-  public Trigger ls10(){return new Trigger(()->lJoy.getRawButton(11));}
+  public Trigger ls1 (){return new Trigger(()->lJoy.getRawButton(1));}
+  public Trigger ls2 (){return new Trigger(()->lJoy.getRawButton(2));}
+  public Trigger ls3 (){return new Trigger(()->lJoy.getRawButton(3));}
+  public Trigger ls4 (){return new Trigger(()->lJoy.getRawButton(4));}
+  public Trigger ls5 (){return new Trigger(()->lJoy.getRawButton(5));}
+  public Trigger ls6 (){return new Trigger(()->lJoy.getRawButton(6));}
+  public Trigger ls7 (){return new Trigger(()->lJoy.getRawButton(7));}
+  public Trigger ls8 (){return new Trigger(()->lJoy.getRawButton(8));}
+  public Trigger ls9 (){return new Trigger(()->lJoy.getRawButton(9));}
+  public Trigger ls10(){return new Trigger(()->lJoy.getRawButton(10));}
+  public Trigger ls11(){return new Trigger(()->lJoy.getRawButton(11));}
 
   public  double getLeftX(){return tune(lJoy.getX());}
   public  double getLeftY(){return -tune(lJoy.getY());}
   public double getLeftSlider(){return lJoy.getThrottle();}
 
   //right joystick
-  public Trigger rs0 (){return new Trigger(()->rJoy.getRawButton(1));}
-  public Trigger rs1 (){return new Trigger(()->rJoy.getRawButton(2));}
-  public Trigger rs2 (){return new Trigger(()->rJoy.getRawButton(3));}
-  public Trigger rs3 (){return new Trigger(()->rJoy.getRawButton(4));}
-  public Trigger rs4 (){return new Trigger(()->rJoy.getRawButton(5));}
-  public Trigger rs5 (){return new Trigger(()->rJoy.getRawButton(6));}
-  public Trigger rs6 (){return new Trigger(()->rJoy.getRawButton(7));}
-  public Trigger rs7 (){return new Trigger(()->rJoy.getRawButton(8));}
-  public Trigger rs8 (){return new Trigger(()->rJoy.getRawButton(9));}
-  public Trigger rs9 (){return new Trigger(()->rJoy.getRawButton(10));}
-  public Trigger rs10(){return new Trigger(()->rJoy.getRawButton(11));}
-  public Trigger rs11(){return new Trigger(()->rJoy.getRawButton(12));}
+  public Trigger rs1 (){return new Trigger(()->rJoy.getRawButton(1));}
+  public Trigger rs2 (){return new Trigger(()->rJoy.getRawButton(2));}
+  public Trigger rs3 (){return new Trigger(()->rJoy.getRawButton(3));}
+  public Trigger rs4 (){return new Trigger(()->rJoy.getRawButton(4));}
+  public Trigger rs5 (){return new Trigger(()->rJoy.getRawButton(5));}
+  public Trigger rs6 (){return new Trigger(()->rJoy.getRawButton(6));}
+  public Trigger rs7 (){return new Trigger(()->rJoy.getRawButton(7));}
+  public Trigger rs8 (){return new Trigger(()->rJoy.getRawButton(8));}
+  public Trigger rs9 (){return new Trigger(()->rJoy.getRawButton(9));}
+  public Trigger rs10(){return new Trigger(()->rJoy.getRawButton(10));}
+  public Trigger rs11(){return new Trigger(()->rJoy.getRawButton(11));}
+  public Trigger rs12(){return new Trigger(()->rJoy.getRawButton(12));}
 
   public Trigger rsPOVup   (){return new Trigger(()->getRightPov()==0);}
   public Trigger rsPOVright(){return new Trigger(()->getRightPov()==90);}
