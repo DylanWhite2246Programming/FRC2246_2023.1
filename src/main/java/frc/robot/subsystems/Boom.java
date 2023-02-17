@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems;
 
-import java.util.function.BooleanSupplier;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -102,11 +100,11 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(()->disable());}
-  public CommandBase moveToIntakePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
   public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  
 
   @Override
   public void useOutput(double output, TrapezoidProfile.State setpoint) {
