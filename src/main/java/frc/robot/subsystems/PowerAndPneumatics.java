@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.Map;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -29,6 +31,8 @@ public class PowerAndPneumatics extends SubsystemBase {
     ph = new PneumaticHub(CANConstants.kPHPort);
     compressor = ph.makeCompressor();
     turnOnCompressor();
+
+    tab.addDouble("Preasure", this::getPreasure).withProperties(Map.of("min", 0,"max", 130));
   }
 
   public PneumaticHub getPH(){return ph;} 
