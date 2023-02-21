@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,12 +21,14 @@ public class PowerAndPneumatics extends SubsystemBase {
   private static PowerDistribution pdh;
   private static PneumaticHub ph;
   private static Compressor compressor;
+  private ShuffleboardTab tab = Shuffleboard.getTab("pneumatics tab");
 
   /** Creates a new PowerAndPneumatics. */
   public PowerAndPneumatics() {
     pdh = new PowerDistribution(CANConstants.kPDHPort, ModuleType.kRev);
     ph = new PneumaticHub(CANConstants.kPHPort);
     compressor = ph.makeCompressor();
+    turnOnCompressor();
   }
 
   public PneumaticHub getPH(){return ph;} 

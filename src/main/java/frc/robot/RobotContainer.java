@@ -31,7 +31,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-   drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX));
+    drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX));
     // Configure the trigger bindings
     configureBindings();
   }
@@ -60,8 +60,8 @@ public class RobotContainer {
     
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());
-    drivestation.b20().and(boomLimitOveride).onTrue(boom.extendBoom());
-    drivestation.b21().and(boomLimitOveride).onTrue(boom.retractBoom());
+    drivestation.b20().onTrue(boom.extendBoom());
+    drivestation.b21().onTrue(boom.retractBoom());
     drivestation.b23().onTrue(boom.moveToBackTopPosition(boomLimitOveride.getAsBoolean()));
     drivestation.b13().onTrue(boom.moveToBackMiddlePostion(boomLimitOveride.getAsBoolean()));
     drivestation.b03().onTrue(boom.moveToBackLowPosition(boomLimitOveride.getAsBoolean()));

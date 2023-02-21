@@ -5,19 +5,25 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -30,7 +36,10 @@ public class Boom extends ProfiledPIDSubsystem {
   private DutyCycleEncoder absencoder;
   private DigitalInput aLimit, bLimit;
 
-  private ArmFeedforward feedforward = new ArmFeedforward(0, 0, 0);
+  private ArmFeedforward ExtFeedforward = new ArmFeedforward(-.33145, 6.9861, 8.1128);
+  private ArmFeedforward RetFeedforward = new ArmFeedforward(0.53433, 1.124, 7.0878);
+
+  ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
   
   private DoubleSolenoid boomSolenoid 
     = new DoubleSolenoid(
@@ -53,22 +62,33 @@ public class Boom extends ProfiledPIDSubsystem {
     super(
         // The ProfiledPIDController used by the subsystem
         new ProfiledPIDController(
+            14.151,
             0,
-            0,
-            0,
+            12.222,
             // The motion profile constraints
-            new TrapezoidProfile.Constraints(0, 0)));
+            new TrapezoidProfile.Constraints(3.14/4, 1))
+      );
+    getController().setTolerance(
+      Units.degreesToRadians(7),
+      0.36446
+    );
 
     m1 = new CANSparkMax(CANConstants.kBoomMotor1Port, MotorType.kBrushless);
     m2 = new CANSparkMax(CANConstants.kBoomMotor2Port, MotorType.kBrushless);
+    m1.setIdleMode(IdleMode.kCoast);
+    m2.setIdleMode(IdleMode.kCoast);
+
     mgroup = new MotorControllerGroup(m1, m2);
+    mgroup.setInverted(false);
 
     absencoder = new DutyCycleEncoder(Ports.kArmAbsoluteEncoderPort);
-
-    mgroup.setInverted(false);
+    absencoder.reset();
 
     aLimit = new DigitalInput(Ports.kBoomLimitSwitchPortA);
     bLimit = new DigitalInput(Ports.kBoomLimitSwitchPortB);
+
+    tab.addDouble("measurement",this::getMeasurement);
+    tab.addBoolean("limit", this::getBoomLimit);
   }
 
   public boolean getBoomLimit(){return aLimit.get()/*|| bLimit.get()*/;}
@@ -97,23 +117,36 @@ public class Boom extends ProfiledPIDSubsystem {
     );
   }
   
-  public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(()->disable());}
-  public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
-  public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride).andThen(extendBoom());}
+  public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride);}
 
   @Override
   public void useOutput(double output, TrapezoidProfile.State setpoint) {
-    mgroup.setVoltage(output+feedforward.calculate(setpoint.position, setpoint.velocity));
+    //if(getBoomLimit()){
+    //}else{
+    //  mgroup.setVoltage(output+ExtFeedforward.calculate(setpoint.position, setpoint.velocity));
+    //}
+    mgroup.setVoltage(output+RetFeedforward.calculate(setpoint.position, setpoint.velocity));
+    SmartDashboard.putNumber("output", output);
+    SmartDashboard.putNumber("setpoint p", setpoint.position);
+    SmartDashboard.putNumber("setpoint v", setpoint.velocity);
   }
 
   @Override
   public double getMeasurement() {
     // Return the process variable measurement here
-    return absencoder.get()-0;
+    return (absencoder.get())*Math.PI*2;
+  }
+
+  @Override
+  public void periodic() {
+      // TODO Auto-generated method stub
+      super.periodic();
   }
 }
