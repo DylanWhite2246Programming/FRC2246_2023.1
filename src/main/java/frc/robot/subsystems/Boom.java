@@ -105,7 +105,7 @@ public class Boom extends ProfiledPIDSubsystem {
     );
   }
   public CommandBase enableCommand(){return runOnce(()->enable());}
-  public CommandBase disableCommand(){return runOnce(()->disable());}
+  public CommandBase disableCommand(){return runOnce(()->{disable();mgroup.stopMotor();});}
   
   /**moves arm to position given (in radia ns) also automatically retracts arm if needed */
   private CommandBase moveArm(double value, boolean limOveride){
