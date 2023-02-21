@@ -4,6 +4,8 @@
 
 package frc.robot.Team2246;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,16 +29,18 @@ public class Drivestation extends SubsystemBase {
   }
 
   private static double tune(double x){return Math.abs(x)>.0275? x*x*Math.signum(x):0;}
+
+  public BooleanSupplier getBoomLimitOveride(){return ()->buttonboardA.getRawButton(7);}
   
   //ButtonBoard
-  public Trigger s00(){return  new Trigger(()->buttonboardA.getRawButton(1));}
-  public Trigger s01(){return  new Trigger(()->buttonboardA.getRawButton(2));}
-  public Trigger s02(){return  new Trigger(()->buttonboardA.getRawButton(3));}
-  public Trigger s03(){return  new Trigger(()->buttonboardA.getRawButton(4));}
-  public Trigger s10(){return  new Trigger(()->buttonboardA.getRawButton(5));}
-  public Trigger s11(){return  new Trigger(()->buttonboardA.getRawButton(6));}
-  public Trigger s12(){return  new Trigger(()->buttonboardA.getRawButton(7));}
-  public Trigger s13(){return  new Trigger(()->buttonboardA.getRawButton(8));}
+  public Trigger s00(){return new Trigger(()->buttonboardA.getRawButton(1));}
+  public Trigger s01(){return new Trigger(()->buttonboardA.getRawButton(2));}
+  public Trigger s02(){return new Trigger(()->buttonboardA.getRawButton(3));}
+  public Trigger s03(){return new Trigger(()->buttonboardA.getRawButton(4));}
+  public Trigger s10(){return new Trigger(()->buttonboardA.getRawButton(5));}
+  public Trigger s11(){return new Trigger(()->buttonboardA.getRawButton(6));}
+  public Trigger s12(){return new Trigger(()->buttonboardA.getRawButton(7));}
+  public Trigger s13(){return new Trigger(()->buttonboardA.getRawButton(8));}
  
   public Trigger b00(){return new Trigger(()->buttonboardB.getRawButton( 1));}
   public Trigger b01(){return new Trigger(()->buttonboardB.getRawButton( 2));}

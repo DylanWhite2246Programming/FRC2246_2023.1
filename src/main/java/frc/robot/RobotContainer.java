@@ -10,6 +10,9 @@ import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
 import frc.robot.subsystems.Vision;
+
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -46,7 +49,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    Trigger boomLimitOveride = drivestation.s12();
+    BooleanSupplier boomLimitOveride = drivestation.getBoomLimitOveride();
     new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, ()->0));
     new Trigger(()->drivestation.getRightPov()==180).whileTrue(new alignToGamePiece(drivetrain, cam, 2, ()->0));
     drivestation.ls1().onTrue(boom.moveToZeroPosition(boomLimitOveride.getAsBoolean()));
@@ -60,8 +63,9 @@ public class RobotContainer {
     
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());
-    drivestation.b20().onTrue(boom.extendBoom());
-    drivestation.b21().onTrue(boom.retractBoom());
+    drivestation.b02().onTrue(boom.disableCommand());
+    drivestation.b20().and(boomLimitOveride).onTrue(boom.extendBoom());
+    drivestation.b21().and(boomLimitOveride).onTrue(boom.retractBoom());
     drivestation.b23().onTrue(boom.moveToBackTopPosition(boomLimitOveride.getAsBoolean()));
     drivestation.b13().onTrue(boom.moveToBackMiddlePostion(boomLimitOveride.getAsBoolean()));
     drivestation.b03().onTrue(boom.moveToBackLowPosition(boomLimitOveride.getAsBoolean()));

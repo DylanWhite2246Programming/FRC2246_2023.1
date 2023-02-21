@@ -20,10 +20,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -75,8 +74,8 @@ public class Boom extends ProfiledPIDSubsystem {
 
     m1 = new CANSparkMax(CANConstants.kBoomMotor1Port, MotorType.kBrushless);
     m2 = new CANSparkMax(CANConstants.kBoomMotor2Port, MotorType.kBrushless);
-    m1.setIdleMode(IdleMode.kCoast);
-    m2.setIdleMode(IdleMode.kCoast);
+    m1.setIdleMode(IdleMode.kBrake);
+    m2.setIdleMode(IdleMode.kBrake);
 
     mgroup = new MotorControllerGroup(m1, m2);
     mgroup.setInverted(false);
@@ -87,7 +86,7 @@ public class Boom extends ProfiledPIDSubsystem {
     aLimit = new DigitalInput(Ports.kBoomLimitSwitchPortA);
     bLimit = new DigitalInput(Ports.kBoomLimitSwitchPortB);
 
-    tab.addDouble("measurement",this::getMeasurement);
+    tab.addDouble("measurement", this::getMeasurement);
     tab.addBoolean("limit", this::getBoomLimit);
   }
 
@@ -99,8 +98,15 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase retractBoom(){return runOnce(()->boomSolenoid.set(Value.kReverse));}
 
   /**sets goal of pid loop */
-  private CommandBase setGoalCommand(double goal){return runOnce(()->{setGoal(goal);enable();});}
-
+  private CommandBase setGoalCommand(double goal){
+    return new ParallelDeadlineGroup(
+      new WaitUntilCommand(this.getController()::atGoal),
+      runOnce(()->{setGoal(goal);enable();})
+    );
+  }
+  public CommandBase enableCommand(){return runOnce(()->enable());}
+  public CommandBase disableCommand(){return runOnce(()->disable());}
+  
   /**moves arm to position given (in radia ns) also automatically retracts arm if needed */
   private CommandBase moveArm(double value, boolean limOveride){
     return new ConditionalCommand(
@@ -114,7 +120,7 @@ public class Boom extends ProfiledPIDSubsystem {
       setGoalCommand(value), 
       //when the goal and curent position are on differnt sides of the robot the arm must be retracted
       ()->(Math.signum(value)!=Math.signum(this.getMeasurement())||value==0)&&!limOveride
-    );
+    ).andThen(disableCommand());
   }
   
   public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride);}
@@ -133,9 +139,6 @@ public class Boom extends ProfiledPIDSubsystem {
     //  mgroup.setVoltage(output+ExtFeedforward.calculate(setpoint.position, setpoint.velocity));
     //}
     mgroup.setVoltage(output+RetFeedforward.calculate(setpoint.position, setpoint.velocity));
-    SmartDashboard.putNumber("output", output);
-    SmartDashboard.putNumber("setpoint p", setpoint.position);
-    SmartDashboard.putNumber("setpoint v", setpoint.velocity);
   }
 
   @Override
