@@ -100,7 +100,7 @@ public class Boom extends ProfiledPIDSubsystem {
   /**sets goal of pid loop */
   private CommandBase setGoalCommand(double goal){
     return new ParallelDeadlineGroup(
-      new WaitUntilCommand(getController()::atGoal),
+      new WaitUntilCommand(()->getController().atGoal()),
       runOnce(()->{setGoal(goal);enable();})
     );
   }
