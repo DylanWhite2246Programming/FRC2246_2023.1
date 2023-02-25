@@ -35,18 +35,18 @@ public final class Constants {
     public static final int kLedPort = 0; //TODO find leds
     //DIO
     public static final int kArmAbsoluteEncoderPort = 0;
-    public static final int kArmRelativeAEncoderPort = 1;
-    public static final int kArmRelativeBEncoderPort = 2;
-    public static final int kBoomLimitSwitchPortA = 3;
-    public static final int kBoomLimitSwitchPortB = 4;
+    public static final int kArmRelativeAEncoderPort = 2;
+    public static final int kArmRelativeBEncoderPort = 1;
+    public static final int kBoomLimitPort = 3;
+    public static final int kLeftBrakeLimitPort = 4;
+    public static final int kRightBrakeLimitPort = 5;
     //SOLENOIDS
     public static final int kClawForwardPort = 15;
     public static final int kClawReversePort = 14;
     public static final int kBoomForwardPort = 12;
     public static final int kBoomReversePort = 13;
-      //RESERVED FOR TWO STAGED CLAW
-    public static final int kBrakeForwardPort = 7;
-    public static final int kBrakeReversePort = 8;
+    public static final int kBrakeForwardPort = 11;
+    public static final int kBrakeReversePort = 10;
   }
   public static class AutonControllers{
     public static final PIDController leftPositionController = 

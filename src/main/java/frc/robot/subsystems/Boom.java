@@ -11,10 +11,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -37,8 +35,18 @@ public class Boom extends ProfiledPIDSubsystem {
   private Encoder relencoder;
   private DigitalInput aLimit;
 
-  private ArmFeedforward ExtFeedforward = new ArmFeedforward(-.33145, 6.9861, 8.1128);
-  private ArmFeedforward RetBackFeedforward = new ArmFeedforward(6.295, 2.3063, 6.0698);
+  private static ArmFeedforward ExtFeedforward = new ArmFeedforward(-.33145, 6.9861, 8.1128);
+  private static ArmFeedforward RetBackFeedforward = new ArmFeedforward(6.295, 2.3063, 6.0698);
+
+  private static ProfiledPIDController extPIDController;
+  private static ProfiledPIDController retPIDController = 
+    new ProfiledPIDController(
+      6.295/2,
+     0,
+        10.121*.9,
+      // The motion profile constraints
+      new TrapezoidProfile.Constraints(3.14/8, 3.14/2)
+    );
 
   ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
   
@@ -60,15 +68,7 @@ public class Boom extends ProfiledPIDSubsystem {
 
   /** Creates a new Boom. */
   public Boom() {
-    super(
-        // The ProfiledPIDController used by the subsystem
-        new ProfiledPIDController(
-            6.295/2,
-           0,
-              10.121*.9,
-            // The motion profile constraints
-            new TrapezoidProfile.Constraints(3.14/8, 3.14/2))
-      );
+    super(retPIDController);
     //getController().setTolerance(
     //  0.7854,
     //  0.36045
@@ -86,7 +86,7 @@ public class Boom extends ProfiledPIDSubsystem {
     relencoder.setDistancePerPulse(2*Math.PI/4096);
     relencoder.setSamplesToAverage(7);
 
-    aLimit = new DigitalInput(Ports.kBoomLimitSwitchPortA);
+    aLimit = new DigitalInput(Ports.kBoomLimitPort);
 
     tab.addDouble("measurement", this::getMeasurement);
     tab.addBoolean("limit", this::getBoomLimit);

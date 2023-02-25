@@ -34,7 +34,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX));
+    drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX, ()->true));
     // Configure the trigger bindings
     configureBindings();
   }
@@ -60,6 +60,8 @@ public class RobotContainer {
 
     drivestation.s13().whileTrue(pp.turnOnCompressorCommand())
       .whileFalse(pp.turnOffCompressorCommand());
+    drivestation.getHandBrake().onTrue(drivetrain.engageBrake())
+      .onFalse(drivetrain.disengageBrake());
     
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());

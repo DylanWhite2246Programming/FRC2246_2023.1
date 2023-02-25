@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -32,7 +33,9 @@ public class PowerAndPneumatics extends SubsystemBase {
     compressor = ph.makeCompressor();
     turnOnCompressor();
 
-    tab.addDouble("Preasure", this::getPreasure).withProperties(Map.of("min", 0,"max", 130));
+    tab.addDouble("Preasure", this::getPreasure)
+      .withWidget(BuiltInWidgets.kDial)
+      .withProperties(Map.of("min", 0,"max", 130));
   }
 
   public PneumaticHub getPH(){return ph;} 

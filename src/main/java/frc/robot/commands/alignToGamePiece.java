@@ -30,7 +30,7 @@ public class alignToGamePiece extends PIDCommand {
       () -> 0,
       // This uses the output
       output -> {
-        drivetrain.driveKinematically(magnitude, ()->output);
+        drivetrain.driveKinematically(magnitude, ()->output, ()->true);
       });
       this.drivetrain = drivetrain; this.vision = vision;
       addRequirements(drivetrain);

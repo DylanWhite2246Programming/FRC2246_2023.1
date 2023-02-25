@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -21,6 +22,10 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -29,6 +34,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CANConstants;
+import frc.robot.Constants.Ports;
 import frc.robot.Constants.RobotConstruction;
 
 public class Drivetrain extends SubsystemBase {
@@ -40,6 +46,14 @@ public class Drivetrain extends SubsystemBase {
   private CANSparkMax[] motorArray;
   private MotorControllerGroup lMotorGroup, rMotorGroup;
   private DifferentialDrive drive;
+
+  private static DoubleSolenoid brakeSolenoid = new DoubleSolenoid(
+    CANConstants.kPHPort, 
+    PneumaticsModuleType.REVPH, 
+    Ports.kBrakeForwardPort, 
+    Ports.kBrakeForwardPort
+  );
+  private static DigitalInput leftLimit, rightLimit;
 
   private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
   private RelativeEncoder[] reArray;
@@ -66,34 +80,42 @@ public class Drivetrain extends SubsystemBase {
     lMotorGroup = new MotorControllerGroup(l1, l2);
     rMotorGroup = new MotorControllerGroup(r1, r2);
 
-    motorArray = new CANSparkMax[]{l1,l2,r1,r2};
-
-    vision = cam;
-
     lMotorGroup.setInverted(false);
     rMotorGroup.setInverted(false);
 
-    setIdleMode(IdleMode.kBrake);
-
     drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
     drive.setSafetyEnabled(false);
+
+    motorArray = new CANSparkMax[]{l1,l2,r1,r2};
+    
+    setIdleMode(IdleMode.kBrake);
 
     l1encoder = l1.getEncoder();
     l2encoder = l2.getEncoder();
     r1encoder = r1.getEncoder();
     r2encoder = r2.getEncoder();
     reArray = new RelativeEncoder[]{l1encoder,l2encoder,r1encoder,r2encoder};
-
+    
     for(RelativeEncoder i : reArray){
       i.setPositionConversionFactor(RobotConstruction.kEncoderPositionConverionRate);
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
     }
 
+    leftLimit = new DigitalInput(Ports.kLeftBrakeLimitPort);
+    rightLimit = new DigitalInput(Ports.kRightBrakeLimitPort);
+
+    brakeSolenoid.set(Value.kReverse);
+
+    vision = cam;
+
     odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
 
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
     tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
-    tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
+    tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kBrake)));
+    tab.add("engageBrake", engageBrake());
+    tab.add("disengageBrake", disengageBrake());
+    tab.addBoolean("brake status", this::getBrakeStatus);
   }
 
   public DifferentialDriveKinematics getKinematics(){return kinematics;}
@@ -117,10 +139,15 @@ public class Drivetrain extends SubsystemBase {
   public Rotation2d getRotation2d(){return navx.getRotation2d();}
   public double getTurnRate(){return navx.getRate();}
 
-  public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z){
+  /**when true brake is not engaged*/
+  public boolean getBrakeStatus(){return leftLimit.get()&&rightLimit.get();}
+  public CommandBase engageBrake(){return runOnce(()->brakeSolenoid.set(Value.kForward));}
+  public CommandBase disengageBrake(){return runOnce(()->brakeSolenoid.set(Value.kReverse));}
+
+  public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z, BooleanSupplier overRide){
     return this.run(()->{
       DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
-      if(x.getAsDouble()!=0||z.getAsDouble()!=0)
+      if((x.getAsDouble()!=0||z.getAsDouble()!=0)&&(getBrakeStatus()||overRide.getAsBoolean()))
       driveVolts( //this call also feeds drivetrain
         leftFeedForward.calculate(speeds.leftMetersPerSecond)
           +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 
