@@ -76,6 +76,8 @@ public class Boom extends ProfiledPIDSubsystem {
 
     m1 = new CANSparkMax(CANConstants.kBoomMotor1Port, MotorType.kBrushless);
     m2 = new CANSparkMax(CANConstants.kBoomMotor2Port, MotorType.kBrushless);
+    m1.setSmartCurrentLimit(15);
+    m2.setSmartCurrentLimit(15);
     m1.setIdleMode(IdleMode.kBrake);
     m2.setIdleMode(IdleMode.kBrake);
 
