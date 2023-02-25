@@ -63,7 +63,7 @@ public class RobotContainer {
     
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());
-    drivestation.b02().onTrue(boom.disableCommand());
+    drivestation.b10().onTrue(boom.disableCommand());
     drivestation.b20().and(boomLimitOveride).onTrue(boom.extendBoom());
     drivestation.b21().and(boomLimitOveride).onTrue(boom.retractBoom());
     drivestation.b23().onTrue(boom.moveToBackTopPosition(boomLimitOveride.getAsBoolean()));

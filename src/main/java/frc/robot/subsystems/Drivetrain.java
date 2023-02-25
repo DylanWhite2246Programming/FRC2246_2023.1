@@ -73,7 +73,7 @@ public class Drivetrain extends SubsystemBase {
     lMotorGroup.setInverted(false);
     rMotorGroup.setInverted(false);
 
-    setIdleMode(IdleMode.kCoast);
+    setIdleMode(IdleMode.kBrake);
 
     drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
     drive.setSafetyEnabled(false);
@@ -92,6 +92,8 @@ public class Drivetrain extends SubsystemBase {
     odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
 
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
+    tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
+    tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
   }
 
   public DifferentialDriveKinematics getKinematics(){return kinematics;}
@@ -118,12 +120,14 @@ public class Drivetrain extends SubsystemBase {
   public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z){
     return this.run(()->{
       DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
+      if(x.getAsDouble()!=0||z.getAsDouble()!=0)
       driveVolts( //this call also feeds drivetrain
         leftFeedForward.calculate(speeds.leftMetersPerSecond)
           +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 
         rightFeedForward.calculate(speeds.rightMetersPerSecond)
           +rightVelocityController.calculate(getWheelSpeeds().rightMetersPerSecond, speeds.rightMetersPerSecond)
       );
+      else{driveVolts(0, 0);}
     });
   }
 
@@ -137,10 +141,13 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void setIdleMode(IdleMode mode){
-    for(CANSparkMax i:motorArray){
+    for(CANSparkMax i : motorArray){
       i.setIdleMode(mode);
     }
   }
+
+  public CommandBase setBrakeMode(){return runOnce(()->setIdleMode(IdleMode.kBrake));}
+  public CommandBase setCoastMode(){return runOnce(()->setIdleMode(IdleMode.kCoast));}
 
   public void driveVolts(double lVolt, double rVolt){
     lMotorGroup.setVoltage(lVolt);

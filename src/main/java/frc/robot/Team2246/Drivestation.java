@@ -28,7 +28,7 @@ public class Drivestation extends SubsystemBase {
     rJoy = new Joystick(rJoyPort);
   }
 
-  private static double tune(double x){return Math.abs(x)>.0275? x*x*Math.signum(x):0;}
+  private static double tune(double x){return Math.abs(x)>.0315? x*x*Math.signum(x):0;}
 
   public BooleanSupplier getBoomLimitOveride(){return ()->buttonboardA.getRawButton(7);}
   

@@ -15,9 +15,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -32,11 +34,11 @@ import frc.robot.Constants.Ports;
 public class Boom extends ProfiledPIDSubsystem {
   private CANSparkMax m1, m2; 
   private MotorControllerGroup mgroup;
-  private DutyCycleEncoder absencoder;
-  private DigitalInput aLimit, bLimit;
+  private Encoder relencoder;
+  private DigitalInput aLimit;
 
   private ArmFeedforward ExtFeedforward = new ArmFeedforward(-.33145, 6.9861, 8.1128);
-  private ArmFeedforward RetFeedforward = new ArmFeedforward(0.53433, 1.124, 7.0878);
+  private ArmFeedforward RetBackFeedforward = new ArmFeedforward(6.295, 2.3063, 6.0698);
 
   ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
   
@@ -61,16 +63,16 @@ public class Boom extends ProfiledPIDSubsystem {
     super(
         // The ProfiledPIDController used by the subsystem
         new ProfiledPIDController(
-            14.151,
-            0,
-            12.222,
+            6.295/2,
+           0,
+              10.121*.9,
             // The motion profile constraints
-            new TrapezoidProfile.Constraints(3.14/4, 1))
+            new TrapezoidProfile.Constraints(3.14/8, 3.14/2))
       );
-    getController().setTolerance(
-      Units.degreesToRadians(7),
-      0.36446
-    );
+    //getController().setTolerance(
+    //  0.7854,
+    //  0.36045
+    //);
 
     m1 = new CANSparkMax(CANConstants.kBoomMotor1Port, MotorType.kBrushless);
     m2 = new CANSparkMax(CANConstants.kBoomMotor2Port, MotorType.kBrushless);
@@ -78,19 +80,31 @@ public class Boom extends ProfiledPIDSubsystem {
     m2.setIdleMode(IdleMode.kBrake);
 
     mgroup = new MotorControllerGroup(m1, m2);
-    mgroup.setInverted(false);
+    mgroup.setInverted(true);
 
-    absencoder = new DutyCycleEncoder(Ports.kArmAbsoluteEncoderPort);
-    absencoder.reset();
+    relencoder = new Encoder(2, 1, true);
+    relencoder.setDistancePerPulse(2*Math.PI/4096);
+    relencoder.setSamplesToAverage(7);
 
     aLimit = new DigitalInput(Ports.kBoomLimitSwitchPortA);
-    bLimit = new DigitalInput(Ports.kBoomLimitSwitchPortB);
 
     tab.addDouble("measurement", this::getMeasurement);
     tab.addBoolean("limit", this::getBoomLimit);
+    tab.add("reset encoder",runOnce(()->relencoder.reset()))
+      .withWidget(BuiltInWidgets.kCommand);
+    tab.add("coast mode",runOnce(()->{
+      m1.setIdleMode(IdleMode.kCoast);
+      m2.setIdleMode(IdleMode.kCoast);
+    })).withWidget(BuiltInWidgets.kCommand);
+    tab.add("brake mode",runOnce(()->{
+      m1.setIdleMode(IdleMode.kBrake);
+      m2.setIdleMode(IdleMode.kBrake);
+    })).withWidget(BuiltInWidgets.kCommand);
+    tab.addBoolean("atgoal", ()->getController().atGoal());
+    tab.addDouble("boom amps", ()->{return (m1.getOutputCurrent()+m2.getOutputCurrent())/2;});
   }
 
-  public boolean getBoomLimit(){return aLimit.get()/*|| bLimit.get()*/;}
+  public boolean getBoomLimit(){return !aLimit.get();}
   
   public CommandBase openClaw(){return runOnce(()->clawSolenoid.set(Value.kForward));}
   public CommandBase closeClaw(){return runOnce(()->clawSolenoid.set(Value.kReverse));}
@@ -106,6 +120,11 @@ public class Boom extends ProfiledPIDSubsystem {
   }
   public CommandBase enableCommand(){return runOnce(()->enable());}
   public CommandBase disableCommand(){return runOnce(()->{disable();mgroup.stopMotor();});}
+
+  public CommandBase setBrakeMode(boolean brake){return runOnce(()->{
+    m1.setIdleMode(brake?IdleMode.kBrake:IdleMode.kCoast);
+    m2.setIdleMode(brake?IdleMode.kBrake:IdleMode.kCoast);
+  });}
   
   /**moves arm to position given (in radia ns) also automatically retracts arm if needed */
   private CommandBase moveArm(double value, boolean limOveride){
@@ -127,7 +146,7 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride);}
   public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride);}
   public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(-.5,limOveride);}
   public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(0,limOveride);}
   public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride);}
   public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride);}
@@ -138,13 +157,14 @@ public class Boom extends ProfiledPIDSubsystem {
     //}else{
     //  mgroup.setVoltage(output+ExtFeedforward.calculate(setpoint.position, setpoint.velocity));
     //}
-    mgroup.setVoltage(output+RetFeedforward.calculate(setpoint.position, setpoint.velocity));
+    //mgroup.setVoltage(output+RetFeedforward.calculate(setpoint.position, setpoint.velocity));
+    mgroup.setVoltage(output);
   }
 
   @Override
   public double getMeasurement() {
     // Return the process variable measurement here
-    return (absencoder.get())*Math.PI*2;
+    return relencoder.getDistance();
   }
 
   @Override
