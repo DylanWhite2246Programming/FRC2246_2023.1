@@ -41,6 +41,8 @@ public class Drivestation extends SubsystemBase {
   public Trigger s11(){return new Trigger(()->buttonboardA.getRawButton(6));}
   public Trigger s12(){return new Trigger(()->buttonboardA.getRawButton(7));}
   public Trigger s13(){return new Trigger(()->buttonboardA.getRawButton(8));}
+
+  public Trigger getHandBrake(){return new Trigger(()->buttonboardA.getRawButton(9));}
  
   public Trigger b00(){return new Trigger(()->buttonboardB.getRawButton( 1));}
   public Trigger b01(){return new Trigger(()->buttonboardB.getRawButton( 2));}
