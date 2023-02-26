@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -36,16 +37,16 @@ public class Boom extends ProfiledPIDSubsystem {
   private DigitalInput aLimit;
 
   private static ArmFeedforward ExtFeedforward = new ArmFeedforward(-.33145, 6.9861, 8.1128);
-  private static ArmFeedforward RetBackFeedforward = new ArmFeedforward(6.295, 2.3063, 6.0698);
+  private static ArmFeedforward RetFeedforward = new ArmFeedforward(0.68638, 0.16261, 4.0881);
 
   private static ProfiledPIDController extPIDController;
   private static ProfiledPIDController retPIDController = 
     new ProfiledPIDController(
-      6.295/2,
+      -4.3726,
      0,
-        10.121*.9,
+     2.3838*.9,
       // The motion profile constraints
-      new TrapezoidProfile.Constraints(3.14/8, 3.14/2)
+      new TrapezoidProfile.Constraints(3.14/10, 3.14/5)
     );
 
   ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
@@ -84,9 +85,9 @@ public class Boom extends ProfiledPIDSubsystem {
     mgroup = new MotorControllerGroup(m1, m2);
     mgroup.setInverted(true);
 
-    relencoder = new Encoder(2, 1, true);
-    relencoder.setDistancePerPulse(2*Math.PI/4096);
-    relencoder.setSamplesToAverage(7);
+    relencoder = new Encoder(2, 1, true, EncodingType.k4X);
+    relencoder.setDistancePerPulse(2*Math.PI/2048);
+    relencoder.setSamplesToAverage(10);
 
     aLimit = new DigitalInput(Ports.kBoomLimitPort);
 
@@ -144,14 +145,14 @@ public class Boom extends ProfiledPIDSubsystem {
     ).andThen(disableCommand());
   }
   
-  public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(-.5,limOveride);}
-  public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(0,limOveride);}
-  public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToBackTopPosition(Boolean limOveride){return moveArm(-1.75,limOveride);}
+  public CommandBase moveToBackMiddlePostion(Boolean limOveride){return moveArm(-1.5,limOveride);}
+  public CommandBase moveToBackLowPosition(Boolean limOveride){return moveArm(-.745,limOveride);}
+  public CommandBase moveToBackIntakePosition(boolean limOveride){return moveArm(-.745,limOveride);}
+  public CommandBase moveToZeroPosition(Boolean limOveride){return moveArm(0,limOveride);}
+  public CommandBase moveToFrontIntakePosition(Boolean limOveride){return moveArm(.8,limOveride);}
+  public CommandBase moveToFrontGroudPosition(Boolean limOveride){return moveArm(.8,limOveride);}
+  public CommandBase moveToFrontMiddlePosition(Boolean limOveride){return moveArm(1.5,limOveride);}
 
   @Override
   public void useOutput(double output, TrapezoidProfile.State setpoint) {
