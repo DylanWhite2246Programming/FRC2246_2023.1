@@ -22,10 +22,11 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.AutonControllers;
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.Ports;
 import frc.robot.Constants.RobotConstruction;
@@ -53,12 +55,12 @@ public class Drivetrain extends SubsystemBase {
     Ports.kBrakeForwardPort, 
     Ports.kBrakeForwardPort
   );
-  private static DigitalInput leftLimit, rightLimit;
+  private static AnalogTrigger leftLimit, rightLimit;
 
   private static RelativeEncoder l1encoder, l2encoder, r1encoder, r2encoder;
   private RelativeEncoder[] reArray;
   
-  private AHRS navx = new AHRS();
+  private AHRS navx = new AHRS(Port.kMXP);
 
   private static DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(RobotConstruction.kTrackWidth); 
   private DifferentialDriveOdometry odometry;
@@ -101,16 +103,20 @@ public class Drivetrain extends SubsystemBase {
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
     }
 
-    leftLimit = new DigitalInput(Ports.kLeftBrakeLimitPort);
-    rightLimit = new DigitalInput(Ports.kRightBrakeLimitPort);
+    leftLimit = new AnalogTrigger(Ports.kLeftBrakeLimitPort);
+    leftLimit.setLimitsVoltage(.5, 4.5);
+    rightLimit = new AnalogTrigger(Ports.kRightBrakeLimitPort);
+    rightLimit.setLimitsVoltage(.5, 4.5);
 
     brakeSolenoid.set(Value.kReverse);
+    disengageBrake().schedule();
 
     vision = cam;
 
     odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
 
     tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
+    tab.addDouble("pitch",this::getPitch);
     tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
     tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kBrake)));
     tab.add("engageBrake", engageBrake());
@@ -135,19 +141,19 @@ public class Drivetrain extends SubsystemBase {
   public double getRightVelocity(){return r1encoder.getVelocity();}
 
   public double getYaw(){return navx.getAngle();}
-  public double getPitch(){return (double)navx.getPitch();}
+  public double getPitch(){return navx.getPitch();}
   public Rotation2d getRotation2d(){return navx.getRotation2d();}
   public double getTurnRate(){return navx.getRate();}
 
   /**when true brake is not engaged*/
-  public boolean getBrakeStatus(){return leftLimit.get()&&rightLimit.get();}
+  public boolean getBrakeStatus(){return leftLimit.getTriggerState()&&rightLimit.getTriggerState();}
   public CommandBase engageBrake(){return runOnce(()->brakeSolenoid.set(Value.kForward));}
   public CommandBase disengageBrake(){return runOnce(()->brakeSolenoid.set(Value.kReverse));}
 
-  public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z, BooleanSupplier overRide){
-    return this.run(()->{
+  public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z, BooleanSupplier override){
+    return this.runEnd(()->{
       DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
-      if((x.getAsDouble()!=0||z.getAsDouble()!=0)&&(getBrakeStatus()||overRide.getAsBoolean()))
+      if((x.getAsDouble()!=0||z.getAsDouble()!=0)&&(getBrakeStatus()||override.getAsBoolean()))
       driveVolts( //this call also feeds drivetrain
         leftFeedForward.calculate(speeds.leftMetersPerSecond)
           +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 
@@ -155,7 +161,7 @@ public class Drivetrain extends SubsystemBase {
           +rightVelocityController.calculate(getWheelSpeeds().rightMetersPerSecond, speeds.rightMetersPerSecond)
       );
       else{driveVolts(0, 0);}
-    });
+    },()->driveVolts(0, 0));
   }
 
   public CommandBase drivePorpotionaly(DoubleSupplier x, DoubleSupplier z) {
@@ -165,6 +171,17 @@ public class Drivetrain extends SubsystemBase {
         () -> {
           drive.arcadeDrive(x.getAsDouble(), z.getAsDouble());
         });
+  }
+
+  public CommandBase allignToGamePiece(DoubleSupplier x){
+    return drivePorpotionaly(
+      x, 
+      ()->{
+        if(vision.getResults(1).hasTargets()&&(Math.abs(vision.getResults(1).getBestTarget().getYaw())>.05))
+        return AutonControllers.turnController.calculate((vision.getResults(1)).getBestTarget().getYaw(), 0);
+        else return 0;
+      }
+    );
   }
 
   public void setIdleMode(IdleMode mode){
