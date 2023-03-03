@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.RobotConstruction;
 
 public class Vision extends SubsystemBase {
-  private PhotonCamera cam = new PhotonCamera("cam");
+  private PhotonCamera cam = new PhotonCamera("OV5647");
   private PhotonPoseEstimator photonPoseEstimator;
   /** Creates a new Vision. */
   public Vision() {

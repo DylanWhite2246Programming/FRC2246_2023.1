@@ -5,13 +5,10 @@
 package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
-import frc.robot.commands.alignToGamePiece;
 import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
 import frc.robot.subsystems.Vision;
-
-import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -49,12 +46,12 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    BooleanSupplier boomLimitOveride = drivestation.getBoomLimitOveride();
-    new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, ()->0));
-    new Trigger(()->drivestation.getRightPov()==180).whileTrue(new alignToGamePiece(drivetrain, cam, 2, ()->0));
-    drivestation.ls1().onTrue(boom.moveToZeroPosition(boomLimitOveride.getAsBoolean()));
-    drivestation.ls2().onTrue(boom.moveToFrontIntakePosition(boomLimitOveride.getAsBoolean()));
-    drivestation.ls3().onTrue(boom.moveToBackIntakePosition(boomLimitOveride.getAsBoolean()));
+    //new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, drivestation::getLeftY));
+    //new Trigger(()->drivestation.getRightPov()==90).whileTrue(drivetrain.allignToGamePiece(drivestation::getLeftY));
+    //new Trigger(()->drivestation.getRightPov()==180).whileTrue(new alignToGamePiece(drivetrain, cam, 2, ()->0));
+    drivestation.ls1().onTrue(boom.moveToZeroPosition());
+    drivestation.ls3().onTrue(boom.moveToFrontIntakePosition());
+    drivestation.ls2().onTrue(boom.moveToBackIntakePosition());
     drivestation.ls4().onTrue(boom.openClaw());
     drivestation.ls5().onTrue(boom.closeClaw());
 
@@ -68,12 +65,12 @@ public class RobotContainer {
     drivestation.b10().onTrue(boom.disableCommand());
     drivestation.b20().onTrue(boom.extendBoom());
     drivestation.b21().onTrue(boom.retractBoom());
-    drivestation.b23().onTrue(boom.moveToBackTopPosition(boomLimitOveride.getAsBoolean()));
-    drivestation.b13().onTrue(boom.moveToBackMiddlePostion(boomLimitOveride.getAsBoolean()));
-    drivestation.b03().onTrue(boom.moveToBackLowPosition(boomLimitOveride.getAsBoolean()));
-    drivestation.b02().onTrue(boom.moveToZeroPosition(boomLimitOveride.getAsBoolean()));
-    drivestation.b12().onTrue(boom.moveToFrontGroudPosition(boomLimitOveride.getAsBoolean()));
-    drivestation.b22().onTrue(boom.moveToFrontMiddlePosition(boomLimitOveride.getAsBoolean()));
+    drivestation.b23().onTrue(boom.moveToBackTopPosition());
+    drivestation.b13().onTrue(boom.moveToBackMiddlePostion());
+    drivestation.b03().onTrue(boom.moveToBackLowPosition());
+    drivestation.b02().onTrue(boom.moveToZeroPosition());
+    drivestation.b12().onTrue(boom.moveToFrontGroudPosition());
+    drivestation.b22().onTrue(boom.moveToFrontMiddlePosition());
   }
 
   /**
@@ -88,4 +85,6 @@ public class RobotContainer {
   }
 
   public void periodic(){}
+  public void teleopDisabledInit(){}
+  public void disabledInit(){boom.disable();}
 }

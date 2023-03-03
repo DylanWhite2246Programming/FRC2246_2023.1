@@ -53,7 +53,7 @@ public class Drivetrain extends SubsystemBase {
     CANConstants.kPHPort, 
     PneumaticsModuleType.REVPH, 
     Ports.kBrakeForwardPort, 
-    Ports.kBrakeForwardPort
+    Ports.kBrakeReversePort
   );
   private static AnalogTrigger leftLimit, rightLimit;
 
@@ -104,12 +104,11 @@ public class Drivetrain extends SubsystemBase {
     }
 
     leftLimit = new AnalogTrigger(Ports.kLeftBrakeLimitPort);
-    leftLimit.setLimitsVoltage(.5, 4.5);
+    leftLimit.setLimitsVoltage(4, 4.5);
     rightLimit = new AnalogTrigger(Ports.kRightBrakeLimitPort);
-    rightLimit.setLimitsVoltage(.5, 4.5);
+    rightLimit.setLimitsVoltage(4, 4.5);
 
     brakeSolenoid.set(Value.kReverse);
-    disengageBrake().schedule();
 
     vision = cam;
 
@@ -119,8 +118,8 @@ public class Drivetrain extends SubsystemBase {
     tab.addDouble("pitch",this::getPitch);
     tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
     tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kBrake)));
-    tab.add("engageBrake", engageBrake());
-    tab.add("disengageBrake", disengageBrake());
+    tab.add("engageBrake", this.engageBrake());
+    tab.add("disengageBrake", this.disengageBrake());
     tab.addBoolean("brake status", this::getBrakeStatus);
   }
 
@@ -146,14 +145,15 @@ public class Drivetrain extends SubsystemBase {
   public double getTurnRate(){return navx.getRate();}
 
   /**when true brake is not engaged*/
-  public boolean getBrakeStatus(){return leftLimit.getTriggerState()&&rightLimit.getTriggerState();}
+  public boolean getBrakeStatus(){return rightLimit.getTriggerState()&&leftLimit.getTriggerState();}
   public CommandBase engageBrake(){return runOnce(()->brakeSolenoid.set(Value.kForward));}
   public CommandBase disengageBrake(){return runOnce(()->brakeSolenoid.set(Value.kReverse));}
 
   public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z, BooleanSupplier override){
     return this.runEnd(()->{
       DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
-      if((x.getAsDouble()!=0||z.getAsDouble()!=0)&&(getBrakeStatus()||override.getAsBoolean()))
+      if(!(getBrakeStatus()||override.getAsBoolean())){driveVolts(0, 0);return;}
+      if((x.getAsDouble()!=0||z.getAsDouble()!=0))
       driveVolts( //this call also feeds drivetrain
         leftFeedForward.calculate(speeds.leftMetersPerSecond)
           +leftVelocityController.calculate(getWheelSpeeds().leftMetersPerSecond, speeds.leftMetersPerSecond), 

@@ -25,7 +25,10 @@ public class alignToGamePiece extends PIDCommand {
       // The controller that the command will use
       new PIDController(.2, 0, .01),
       // This should return the measurement
-      ()->vision.getResults(gamePiece).getBestTarget().getYaw(),
+      ()->{
+        return vision.getResults(gamePiece).hasTargets()?
+          vision.getResults(gamePiece).getBestTarget().getYaw():0;
+      },
       // This should return the setpoint (can also be a constant)
       () -> 0,
       // This uses the output
@@ -34,13 +37,13 @@ public class alignToGamePiece extends PIDCommand {
       });
       this.drivetrain = drivetrain; this.vision = vision;
       addRequirements(drivetrain);
-    // Use addRequirements() here to declare subsystem dependencies.
+      // Use addRequirements() here to declare subsystem dependencies.
     // Configure additional PID options by calling `getController` here.
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return getController().atSetpoint();
+    return false;
   }
 }

@@ -30,8 +30,6 @@ public class Drivestation extends SubsystemBase {
 
   private static double tune(double x){return Math.abs(x)>.0315? x*x*Math.signum(x):0;}
 
-  public BooleanSupplier getBoomLimitOveride(){return ()->buttonboardA.getRawButton(7);}
-  
   //ButtonBoard
   public Trigger s00(){return new Trigger(()->buttonboardA.getRawButton(1));}
   public Trigger s01(){return new Trigger(()->buttonboardA.getRawButton(2));}
