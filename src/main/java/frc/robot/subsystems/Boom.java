@@ -10,7 +10,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -41,9 +40,9 @@ public class Boom extends ProfiledPIDSubsystem {
     new ProfiledPIDController(
       6.25,
      0,
-     .025,
+     0,//.025,
       // The motion profile constraints
-      new TrapezoidProfile.Constraints(3.14, 3.14)
+      new TrapezoidProfile.Constraints(3.14, 3.14*.7)
     );
 
   ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
@@ -128,6 +127,7 @@ public class Boom extends ProfiledPIDSubsystem {
   }
   public CommandBase enableCommand(){return runOnce(()->enable());}
   public CommandBase disableCommand(){return runOnce(()->{disable();mgroup.stopMotor();});}
+  public CommandBase resetController(){return runOnce(()->getController().reset(getMeasurement()));}
 
   public CommandBase setBrakeMode(boolean brake){return runOnce(()->{
     m1.setIdleMode(brake?IdleMode.kBrake:IdleMode.kCoast);
@@ -154,11 +154,13 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase moveToBackTopPosition(){return moveArm(-1.95).andThen(extendBoom());}
   public CommandBase moveToBackMiddlePostion(){return moveArm(-1.7);}
   public CommandBase moveToBackLowPosition(){return moveArm(-.83).andThen(extendBoom());}
-  public CommandBase moveToBackIntakePosition(){return moveArm(-.83).andThen(extendBoom());}
+  public CommandBase moveToBackIntakePosition(){return moveArm(-.81).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(){return moveArm(0).andThen(disableCommand());}
-  public CommandBase moveToFrontIntakePosition(){return moveArm(.7675).andThen(extendBoom());}
-  public CommandBase moveToFrontGroudPosition(){return moveArm(.76575).andThen(extendBoom());}
+  public CommandBase moveToFrontIntakePosition(){return moveArm(.755).andThen(extendBoom());}
+  public CommandBase moveToFrontGroudPosition(){return moveArm(.8).andThen(extendBoom());}
   public CommandBase moveToFrontMiddlePosition(){return moveArm(1.59).andThen(extendBoom());}
+  public CommandBase moveToFHummanPlayerStation(){return moveArm(1.475);}
+  public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.65);}
 
   public boolean getAtGoal(){
     return Math.abs(getController().getGoal().position-getMeasurement())<getController().getPositionTolerance();
@@ -166,7 +168,7 @@ public class Boom extends ProfiledPIDSubsystem {
 
   @Override
   public void useOutput(double output, TrapezoidProfile.State setpoint) {
-    //double appliedVoltage = output+RetFeedforward.calculate(setpoint.position, setpoint.velocity);
+    //double appliedVoltage = output+R TetFeedforward.calculate(setpoint.position, setpoint.velocity);
     this.output = output;
     double appliedVoltage = output;
     if(appliedVoltage>0&&forLimit.getTriggerState()){mgroup.stopMotor();disable();return;}

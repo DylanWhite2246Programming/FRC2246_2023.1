@@ -13,6 +13,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,6 +23,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -34,6 +36,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.AutonControllers;
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.Ports;
@@ -43,7 +46,7 @@ public class Drivetrain extends SubsystemBase {
   ShuffleboardTab tab = Shuffleboard.getTab("Telemetry Tab");
   private Vision vision;
 
-  private double xScalar = 6.75, zScalar = 7;
+  private double xScalar = 3.75, zScalar = 3.14;
   private CANSparkMax l1, l2, r1, r2;
   private CANSparkMax[] motorArray;
   private MotorControllerGroup lMotorGroup, rMotorGroup;
@@ -65,9 +68,9 @@ public class Drivetrain extends SubsystemBase {
   private static DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(RobotConstruction.kTrackWidth); 
   private DifferentialDriveOdometry odometry;
 
-  Constraints constraints = new Constraints(8, 1);
-  private ProfiledPIDController leftVelocityController  = new ProfiledPIDController(.060762, 0, 0, constraints);
-  private ProfiledPIDController rightVelocityController = new ProfiledPIDController(0.060762, 0, 0, constraints);
+  Constraints constraints = new Constraints(4, .000005);
+  private PIDController leftVelocityController  = new PIDController(.060762, 0, 0);
+  private PIDController rightVelocityController = new PIDController(0.060762, 0, 0);
   //old ks 12236
   private SimpleMotorFeedforward leftFeedForward = new SimpleMotorFeedforward(.053405, 2.698, .32867);
   private SimpleMotorFeedforward rightFeedForward = new SimpleMotorFeedforward(.053405, 2.698, .32857);
@@ -79,6 +82,12 @@ public class Drivetrain extends SubsystemBase {
     r1 = new CANSparkMax(CANConstants.kR1Port, MotorType.kBrushless);
     r2 = new CANSparkMax(CANConstants.kR2Port, MotorType.kBrushless);
 
+    motorArray = new CANSparkMax[]{l1,l2,r1,r2};
+
+    for(CANSparkMax i : motorArray){
+      i.setOpenLoopRampRate(.75);
+    }
+
     lMotorGroup = new MotorControllerGroup(l1, l2);
     rMotorGroup = new MotorControllerGroup(r1, r2);
 
@@ -88,8 +97,6 @@ public class Drivetrain extends SubsystemBase {
     drive = new DifferentialDrive(lMotorGroup, rMotorGroup);
     drive.setSafetyEnabled(false);
 
-    motorArray = new CANSparkMax[]{l1,l2,r1,r2};
-    
     setIdleMode(IdleMode.kBrake);
 
     l1encoder = l1.getEncoder();
@@ -101,6 +108,7 @@ public class Drivetrain extends SubsystemBase {
     for(RelativeEncoder i : reArray){
       i.setPositionConversionFactor(RobotConstruction.kEncoderPositionConverionRate);
       i.setVelocityConversionFactor(RobotConstruction.kEncoderVelocityConverionRate);
+      i.setPosition(0);
     }
 
     leftLimit = new AnalogTrigger(Ports.kLeftBrakeLimitPort);
@@ -118,20 +126,30 @@ public class Drivetrain extends SubsystemBase {
     tab.addDouble("pitch",this::getPitch);
     tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
     tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kBrake)));
+    tab.add("zero pose", runOnce(()->resetPose()));
     tab.add("engageBrake", this.engageBrake());
     tab.add("disengageBrake", this.disengageBrake());
     tab.addBoolean("brake status", this::getBrakeStatus);
+    tab.addDouble("x", ()->getPose2d().getX());
   }
 
   public DifferentialDriveKinematics getKinematics(){return kinematics;}
 
-  public static DifferentialDriveWheelSpeeds getWheelSpeeds(){
+  public DifferentialDriveWheelSpeeds getWheelSpeeds(){
     return new DifferentialDriveWheelSpeeds(l1encoder.getVelocity(), r1encoder.getVelocity());
   }
 
-  public static ChassisSpeeds getChassisSpeed(){return kinematics.toChassisSpeeds(getWheelSpeeds());}
+  public ChassisSpeeds getChassisSpeed(){return kinematics.toChassisSpeeds(getWheelSpeeds());}
 
   public Pose2d getPose2d(){return odometry.getPoseMeters();}//TODO change
+  public void resetPose(){
+    odometry.resetPosition(
+      getRotation2d(), 
+      getLeftDisplacement(), 
+      getRightDisplacement(), 
+      new Pose2d(0, 0, new Rotation2d())
+    );
+  }
 
   public double getLeftDisplacement(){return l1encoder.getPosition();}
   public double getRightDisplacement(){return r1encoder.getPosition();}
@@ -140,9 +158,14 @@ public class Drivetrain extends SubsystemBase {
   public double getRightVelocity(){return r1encoder.getVelocity();}
 
   public double getYaw(){return navx.getAngle();}
-  public double getPitch(){return navx.getPitch();}
+  public double getPitch(){return (double)navx.getRoll()-1;}
   public Rotation2d getRotation2d(){return navx.getRotation2d();}
   public double getTurnRate(){return navx.getRate();}
+  public CommandBase calibrateNavx(){
+    return runOnce(()->navx.calibrate())
+      .andThen(new WaitUntilCommand(()->!navx.isCalibrating()))
+      .andThen(runOnce(()->navx.reset()));
+  }
 
   /**when true brake is not engaged*/
   public boolean getBrakeStatus(){return rightLimit.getTriggerState()&&leftLimit.getTriggerState();}
@@ -151,7 +174,11 @@ public class Drivetrain extends SubsystemBase {
 
   public CommandBase driveKinematically(DoubleSupplier x, DoubleSupplier z, BooleanSupplier override){
     return this.runEnd(()->{
-      DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(new ChassisSpeeds(x.getAsDouble()*xScalar, 0, z.getAsDouble()*zScalar));
+      DifferentialDriveWheelSpeeds speeds = kinematics.toWheelSpeeds(
+        new ChassisSpeeds(
+          x.getAsDouble()*xScalar, 0, 
+          z.getAsDouble()*zScalar
+        ));
       if(!(getBrakeStatus()||override.getAsBoolean())){driveVolts(0, 0);return;}
       if((x.getAsDouble()!=0||z.getAsDouble()!=0))
       driveVolts( //this call also feeds drivetrain
@@ -181,7 +208,17 @@ public class Drivetrain extends SubsystemBase {
         return AutonControllers.turnController.calculate((vision.getResults(1)).getBestTarget().getYaw(), 0);
         else return 0;
       }
-    );
+      );
+  }
+    
+  public void driveVolts(double lVolt, double rVolt){
+    lMotorGroup.setVoltage(lVolt);
+    rMotorGroup.setVoltage(rVolt);
+    drive.feed();
+  }
+
+  public CommandBase stopCommand(){
+    return runOnce(()->driveVolts(0, 0));
   }
 
   public void setIdleMode(IdleMode mode){
@@ -193,14 +230,10 @@ public class Drivetrain extends SubsystemBase {
   public CommandBase setBrakeMode(){return runOnce(()->setIdleMode(IdleMode.kBrake));}
   public CommandBase setCoastMode(){return runOnce(()->setIdleMode(IdleMode.kCoast));}
 
-  public void driveVolts(double lVolt, double rVolt){
-    lMotorGroup.setVoltage(lVolt);
-    rMotorGroup.setVoltage(rVolt);
-    drive.feed();
-  }
 
   @Override
   public void periodic() {
+    odometry.update(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
     // This method will be called once per scheduler run
   }
 

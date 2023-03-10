@@ -5,9 +5,11 @@
 package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -19,7 +21,7 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static final int[] pressure = new int[]{65,85};
+  public static final int[] pressure = new int[]{75,95};
   public static class CANConstants{
     public static final int kL1Port = 1;
     public static final int kL2Port = 2;
@@ -57,13 +59,17 @@ public final class Constants {
       new PIDController(0, 0, 0);
     public static final PIDController turnController = 
       new PIDController(.15, 0, 0);
+    public static final RamseteController ramsetController = 
+      new RamseteController(2, .7);
+    public static final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(1, .75);
+    public static final TrajectoryConfig revTrajectoryConfig = new TrajectoryConfig(1, .75).setReversed(true);
   }
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
   public static class RobotConstruction{
     public static final double kTrackWidth = Units.inchesToMeters(22+(7/16));
-    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71);//TODO verify these values
+    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71*3.3);//TODO verify these values
     public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60; //TODO verify these values
     public static final Transform3d robotToCam = new Transform3d(new Translation3d(), new Rotation3d()); //TODO put value here
   }

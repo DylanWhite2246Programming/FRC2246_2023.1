@@ -5,12 +5,18 @@
 package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
+import frc.robot.commands.AutoLevel;
+import frc.robot.commands.Autos;
 import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
 import frc.robot.subsystems.Vision;
-
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -22,6 +28,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   private final Drivestation drivestation = new Drivestation(0, 1, 2, 3);
+  ShuffleboardTab tab = Shuffleboard.getTab("main");
+  SendableChooser<CommandBase> chooser = new SendableChooser<CommandBase>();
 
   // The robot's subsystems and commands are defined here...
   private final Vision cam = new Vision();
@@ -31,9 +39,19 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    drivetrain.resetPose();
     drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX, ()->true));
     // Configure the trigger bindings
     configureBindings();
+      chooser.addOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
+      chooser.addOption("autoleveltest", 
+        drivetrain.run(()->drivetrain.driveVolts(-1.7, -1.7))
+          .until(()->{return drivetrain.getPitch()>14;})
+          .withTimeout(5)
+        .andThen(new AutoLevel(drivetrain))
+      );
+      chooser.addOption("non", null);
+    tab.add("sendable" , chooser).withSize(2, 1);
   }
 
   /**
@@ -55,6 +73,9 @@ public class RobotContainer {
     drivestation.ls4().onTrue(boom.openClaw());
     drivestation.ls5().onTrue(boom.closeClaw());
 
+    drivestation.rs3().onTrue(boom.moveToFHummanPlayerStation());
+    drivestation.rs4().onTrue(boom.moveToRHummanPlayerStation());
+
     drivestation.s13().whileTrue(pp.turnOnCompressorCommand())
       .whileFalse(pp.turnOffCompressorCommand());
     drivestation.getHandBrake().onTrue(drivetrain.engageBrake())
@@ -63,6 +84,7 @@ public class RobotContainer {
     drivestation.b00().onTrue(boom.openClaw());
     drivestation.b01().onTrue(boom.closeClaw());
     drivestation.b10().onTrue(boom.disableCommand());
+    drivestation.b11().onTrue(boom.moveToFHummanPlayerStation());
     drivestation.b20().onTrue(boom.extendBoom());
     drivestation.b21().onTrue(boom.retractBoom());
     drivestation.b23().onTrue(boom.moveToBackTopPosition());
@@ -81,7 +103,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     //return Autos.exampleAuto(m_exampleSubsystem);
-    return null;
+    return chooser.getSelected();
   }
 
   public void periodic(){}
