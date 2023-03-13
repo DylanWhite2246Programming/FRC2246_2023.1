@@ -76,7 +76,7 @@ public class PowerAndPneumatics extends SubsystemBase {
   /**
    * @return preasure of the pnuematic system
    */
-  public double getPreasure(){return compressor.getPressure();}//TODO Check this
+  public double getPreasure(){return compressor.getPressure();}
   /**turns on compressor with predefined limits in Robot.Constants file */
   public void turnOnCompressor(){compressor.enableAnalog(Constants.pressure[0], Constants.pressure[1]);System.out.println("on");}
   /**turns off compressor */

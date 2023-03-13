@@ -154,13 +154,13 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase moveToBackTopPosition(){return moveArm(-1.95).andThen(extendBoom());}
   public CommandBase moveToBackMiddlePostion(){return moveArm(-1.7);}
   public CommandBase moveToBackLowPosition(){return moveArm(-.83).andThen(extendBoom());}
-  public CommandBase moveToBackIntakePosition(){return moveArm(-.81).andThen(extendBoom());}
+  public CommandBase moveToBackIntakePosition(){return moveArm(-.775).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(){return moveArm(0).andThen(disableCommand());}
   public CommandBase moveToFrontIntakePosition(){return moveArm(.755).andThen(extendBoom());}
   public CommandBase moveToFrontGroudPosition(){return moveArm(.8).andThen(extendBoom());}
   public CommandBase moveToFrontMiddlePosition(){return moveArm(1.59).andThen(extendBoom());}
   public CommandBase moveToFHummanPlayerStation(){return moveArm(1.475);}
-  public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.65);}
+  public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.55);}
 
   public boolean getAtGoal(){
     return Math.abs(getController().getGoal().position-getMeasurement())<getController().getPositionTolerance();
@@ -185,7 +185,6 @@ public class Boom extends ProfiledPIDSubsystem {
 
   @Override
   public void periodic() {
-      // TODO Auto-generated method stub
       super.periodic();
       //if(getController().getGoal().position==0&&zeroLimit.getTriggerState()){disable();mgroup.stopMotor();}
   }
