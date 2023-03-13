@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -25,6 +26,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -157,6 +159,25 @@ public class Drivetrain extends SubsystemBase {
 
   public double getYaw(){return navx.getAngle();}
   public double getPitch(){return (double)navx.getRoll()-1;}
+  double lastPitch=0, lastTimeStamp = 0;
+  ArrayList<Double> lastValues = new ArrayList<>();
+  public double getPitchRate(){
+    double currentTime = RobotController.getFPGATime();
+    if(currentTime-lastTimeStamp>.3){lastValues.clear();}
+    do{
+      currentTime = RobotController.getFPGATime()/1000000;
+      var d = (getPitch()-lastPitch)/(currentTime-lastTimeStamp); 
+      lastValues.add(d);
+      lastPitch=getPitch(); lastTimeStamp=currentTime;
+    }while(lastValues.size()<10);
+    if(lastValues.size()>10){
+      lastValues=(ArrayList<Double>)lastValues.subList(0, 10);
+    }
+    //10 represents the number of vlaues to keep
+    double sum = 0;
+    for(Object i: lastValues.toArray()){sum+=(double)i;}
+    return sum/lastValues.size();
+  }
   public Rotation2d getRotation2d(){return navx.getRotation2d();}
   public double getTurnRate(){return navx.getRate();}
   public CommandBase calibrateNavx(){
@@ -190,8 +211,6 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public CommandBase drivePorpotionaly(DoubleSupplier x, DoubleSupplier z) {
-    // Inline construction of command goes here.
-    // Subsystem::RunOnce implicitly requires `this` subsystem.
     return this.run(
         () -> {
           drive.arcadeDrive(x.getAsDouble(), z.getAsDouble());
