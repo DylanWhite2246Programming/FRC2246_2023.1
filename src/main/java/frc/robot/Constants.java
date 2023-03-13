@@ -33,8 +33,6 @@ public final class Constants {
     public static final int kPHPort = 8;
   }
   public static class Ports{
-    //PWM
-    public static final int kLedPort = 0; //TODO find leds
     //DIO
     public static final int kArmAbsoluteEncoderPort = 0;
     //ANALOG INPUT
@@ -69,8 +67,8 @@ public final class Constants {
   }
   public static class RobotConstruction{
     public static final double kTrackWidth = Units.inchesToMeters(22+(7/16));
-    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71*3.3);//TODO verify these values
-    public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60; //TODO verify these values
+    public static final double kEncoderPositionConverionRate = 1/(Units.inchesToMeters(6)*Math.PI*10.71*3.3);
+    public static final double kEncoderVelocityConverionRate = kEncoderPositionConverionRate/60;
     public static final Transform3d robotToCam = new Transform3d(new Translation3d(), new Rotation3d()); //TODO put value here
   }
 }

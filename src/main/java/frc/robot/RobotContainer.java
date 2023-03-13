@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -73,6 +72,7 @@ public class RobotContainer {
     drivestation.ls4().onTrue(boom.openClaw());
     drivestation.ls5().onTrue(boom.closeClaw());
 
+    drivestation.rs2().whileTrue(drivetrain.drivePorpotionaly(drivestation::getLeftY, drivestation::getLeftX));
     drivestation.rs3().onTrue(boom.moveToFHummanPlayerStation());
     drivestation.rs4().onTrue(boom.moveToRHummanPlayerStation());
 
