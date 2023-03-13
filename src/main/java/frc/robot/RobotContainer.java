@@ -5,7 +5,6 @@
 package frc.robot;
 
 import frc.robot.Team2246.Drivestation;
-import frc.robot.commands.AutoLevel;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
@@ -42,15 +41,18 @@ public class RobotContainer {
     drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX, ()->true));
     // Configure the trigger bindings
     configureBindings();
-      chooser.addOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
-      chooser.addOption("autoleveltest", 
-        drivetrain.run(()->drivetrain.driveVolts(-1.7, -1.7))
-          .until(()->{return drivetrain.getPitch()>14;})
-          .withTimeout(5)
-        .andThen(new AutoLevel(drivetrain))
-      );
-      chooser.addOption("non", null);
-    tab.add("sendable" , chooser).withSize(2, 1);
+    //chooser.addOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
+    chooser.setDefaultOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
+    //chooser.addOption("autoleveltest", 
+    //  drivetrain.run(()->drivetrain.driveVolts(-1.7, -1.7))
+    //    .until(()->{return Math.abs(drivetrain.getPitch())>14;})
+    //    .withTimeout(5)
+    //  .andThen(new AutoLevel(drivetrain))
+    //);
+    chooser.addOption("autolevel?", Autos.oneGameAndLevel(drivetrain, boom));
+    chooser.addOption("oneGameCable", Autos.oneGameCable(drivetrain, boom));
+    chooser.addOption("non", null);
+    tab.add("sendable", chooser).withSize(2, 1);
   }
 
   /**
@@ -91,7 +93,7 @@ public class RobotContainer {
     drivestation.b13().onTrue(boom.moveToBackMiddlePostion());
     drivestation.b03().onTrue(boom.moveToBackLowPosition());
     drivestation.b02().onTrue(boom.moveToZeroPosition());
-    drivestation.b12().onTrue(boom.moveToFrontGroudPosition());
+    drivestation.b12().onTrue(boom.moveToFrontQuePosition());
     drivestation.b22().onTrue(boom.moveToFrontMiddlePosition());
   }
 
@@ -103,7 +105,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     //return Autos.exampleAuto(m_exampleSubsystem);
-    return chooser.getSelected();
+    return chooser.getSelected().beforeStarting(()->drivetrain.resetPose(),drivetrain);
   }
 
   public void periodic(){}

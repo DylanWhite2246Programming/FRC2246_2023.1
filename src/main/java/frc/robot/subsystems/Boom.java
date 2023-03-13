@@ -157,7 +157,7 @@ public class Boom extends ProfiledPIDSubsystem {
   public CommandBase moveToBackIntakePosition(){return moveArm(-.775).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(){return moveArm(0).andThen(disableCommand());}
   public CommandBase moveToFrontIntakePosition(){return moveArm(.755).andThen(extendBoom());}
-  public CommandBase moveToFrontGroudPosition(){return moveArm(.8).andThen(extendBoom());}
+  public CommandBase moveToFrontQuePosition(){return moveArm(.7).beforeStarting(retractBoom());}
   public CommandBase moveToFrontMiddlePosition(){return moveArm(1.59).andThen(extendBoom());}
   public CommandBase moveToFHummanPlayerStation(){return moveArm(1.475);}
   public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.55);}

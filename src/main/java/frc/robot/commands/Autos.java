@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.AutonControllers;
@@ -114,6 +115,46 @@ public final class Autos {
       boom.openClaw(),
       new WaitCommand(1),
       ramsetGenerator(drive, trajectory2).alongWith(boom.moveToZeroPosition()),
+      drive.stopCommand()
+    );
+  }
+
+  public static CommandBase oneGameAndLevel(Drivetrain drive, Boom boom){
+    drive.resetPose(); double trajectoryToleranceFuckery = .2;
+    Pose2d initPose = drive.getPose2d();
+    Pose2d placementPose = new Pose2d(
+      initPose.getX()-.3-trajectoryToleranceFuckery, 
+      initPose.getY(), 
+      initPose.getRotation()
+    );
+    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
+      initPose,  
+      List.of(), 
+      placementPose, 
+      AutonControllers.revTrajectoryConfig
+    );
+    return new SequentialCommandGroup(
+      boom.closeClaw(),
+      boom.resetController(),
+      boom.moveToBackTopPosition(),
+      ramsetGenerator(drive, trajectory1),
+      drive.stopCommand(),
+      boom.openClaw(),
+      new WaitCommand(.7),
+      //drive over
+      new RunCommand(()->drive.driveVolts(2.75, 2.75), drive)
+        .withTimeout(6)
+        .alongWith(boom.moveToFrontQuePosition()),
+      drive.stopCommand(),
+      new WaitCommand(.25),
+      //back onto the scale
+      new RunCommand(()->drive.driveVolts(-2, -2), drive)
+        .until(()->{return drive.getPitchRate()>.25;})
+        .withTimeout(2.5),
+      //wait until the scale begins to fall to stop driving
+      new RunCommand(()->drive.driveVolts(-1.7, -1.7), drive)
+        .until(()->{return drive.getPitchRate()<.25;})
+        .withTimeout(1.7),
       drive.stopCommand()
     );
   }
