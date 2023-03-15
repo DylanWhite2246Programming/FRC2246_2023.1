@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -122,8 +123,8 @@ public class Drivetrain extends SubsystemBase {
 
     odometry = new DifferentialDriveOdometry(getRotation2d(), getLeftDisplacement(), getRightDisplacement());
 
-    tab.add(drive).withWidget(BuiltInWidgets.kDifferentialDrive);
     tab.addDouble("pitch",this::getPitch);
+    tab.addDouble("pitchRate", this::getPitchRate);
     tab.add("coast mode", runOnce(()->setIdleMode(IdleMode.kCoast)));
     tab.add("brake mode", runOnce(()->setIdleMode(IdleMode.kBrake)));
     tab.add("zero pose", runOnce(()->resetPose()));
@@ -131,6 +132,8 @@ public class Drivetrain extends SubsystemBase {
     tab.add("disengageBrake", this.disengageBrake());
     tab.addBoolean("brake status", this::getBrakeStatus);
     tab.addDouble("x", ()->getPose2d().getX());
+    tab.addDouble("y", ()->getPose2d().getY());
+    tab.addDouble("rot", ()->getRotation2d().getRadians());
   }
 
   public DifferentialDriveKinematics getKinematics(){return kinematics;}
@@ -143,6 +146,7 @@ public class Drivetrain extends SubsystemBase {
 
   public Pose2d getPose2d(){return odometry.getPoseMeters();}
   public void resetPose(){
+    navx.zeroYaw();
     odometry.resetPosition(
       getRotation2d(), 
       getLeftDisplacement(), 
@@ -160,23 +164,25 @@ public class Drivetrain extends SubsystemBase {
   public double getYaw(){return navx.getAngle();}
   public double getPitch(){return (double)navx.getRoll()-1;}
   double lastPitch=0, lastTimeStamp = 0;
-  ArrayList<Double> lastValues = new ArrayList<>();
+  //ArrayList<Double> lastValues = new ArrayList<>();
+  //List<Double> subList;
   public double getPitchRate(){
-    double currentTime = RobotController.getFPGATime();
-    if(currentTime-lastTimeStamp>.3){lastValues.clear();}
-    do{
-      currentTime = RobotController.getFPGATime()/1000000;
-      var d = (getPitch()-lastPitch)/(currentTime-lastTimeStamp); 
-      lastValues.add(d);
-      lastPitch=getPitch(); lastTimeStamp=currentTime;
-    }while(lastValues.size()<10);
-    if(lastValues.size()>10){
-      lastValues=(ArrayList<Double>)lastValues.subList(0, 10);
-    }
+    //double currentTime = RobotController.getFPGATime();
+    //if(currentTime-lastTimeStamp>.3){lastValues.clear();}
+    //if(lastValues.size()>999){lastValues.clear();}
+    //do{
+    var d = (getPitch()-lastPitch)/(RobotController.getFPGATime()/1000000-lastTimeStamp); 
+    //  lastValues.add(d);
+    lastPitch=getPitch(); lastTimeStamp=RobotController.getFPGATime()/1000000;
+    //}while(lastValues.size()<=10);
+    //if(lastValues.size()>10){
+    //subList=lastValues.subList(lastValues.size()-10, lastValues.size());
+    //}
     //10 represents the number of vlaues to keep
-    double sum = 0;
-    for(Object i: lastValues.toArray()){sum+=(double)i;}
-    return sum/lastValues.size();
+    //double sum = 0;
+    //for(Object woman: subList.toArray()){sum+=(double)woman;}
+    //return sum/lastValues.size();
+    return (double)d;
   }
   public Rotation2d getRotation2d(){return navx.getRotation2d();}
   public double getTurnRate(){return navx.getRate();}

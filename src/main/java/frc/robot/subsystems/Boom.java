@@ -39,10 +39,10 @@ public class Boom extends ProfiledPIDSubsystem {
   private static ProfiledPIDController retPIDController = 
     new ProfiledPIDController(
       6.25,
-     0,
-     0,//.025,
+     01,
+      .001,//.025,
       // The motion profile constraints
-      new TrapezoidProfile.Constraints(3.14, 3.14*.7)
+      new TrapezoidProfile.Constraints(3.14*1.5, 3.14*1.25)
     );
 
   ShuffleboardTab tab = Shuffleboard.getTab("arm tab");
@@ -123,7 +123,7 @@ public class Boom extends ProfiledPIDSubsystem {
 
   /**sets goal of pid loop */
   private CommandBase setGoalCommand(double goal){
-    return runOnce(()->{setGoal(goal);enable();});
+    return runOnce(()->{setGoal(goal);if(!this.isEnabled())enable();});
   }
   public CommandBase enableCommand(){return runOnce(()->enable());}
   public CommandBase disableCommand(){return runOnce(()->{disable();mgroup.stopMotor();});}
@@ -151,16 +151,16 @@ public class Boom extends ProfiledPIDSubsystem {
       .andThen(new WaitUntilCommand(this::getAtGoal));
   }
   
-  public CommandBase moveToBackTopPosition(){return moveArm(-1.95).andThen(extendBoom());}
-  public CommandBase moveToBackMiddlePostion(){return moveArm(-1.7);}
+  public CommandBase moveToBackTopPosition(){return moveArm(-1.85).andThen(extendBoom());}
+  public CommandBase moveToBackMiddlePostion(){return moveArm(-1.7).beforeStarting(retractBoom());}
   public CommandBase moveToBackLowPosition(){return moveArm(-.83).andThen(extendBoom());}
   public CommandBase moveToBackIntakePosition(){return moveArm(-.775).andThen(extendBoom());}
   public CommandBase moveToZeroPosition(){return moveArm(0).andThen(disableCommand());}
-  public CommandBase moveToFrontIntakePosition(){return moveArm(.755).andThen(extendBoom());}
-  public CommandBase moveToFrontQuePosition(){return moveArm(.7).beforeStarting(retractBoom());}
-  public CommandBase moveToFrontMiddlePosition(){return moveArm(1.59).andThen(extendBoom());}
-  public CommandBase moveToFHummanPlayerStation(){return moveArm(1.475);}
-  public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.55);}
+  public CommandBase moveToFrontQuePosition(){return moveArm(.65).beforeStarting(retractBoom());}
+  public CommandBase moveToFrontIntakePosition(){return moveArm(.735).andThen(extendBoom());}
+  public CommandBase moveToFrontMiddlePosition(){return moveArm(1.5).andThen(extendBoom());}
+  public CommandBase moveToFHummanPlayerStation(){return moveArm(1.475).beforeStarting(retractBoom());}
+  public CommandBase moveToRHummanPlayerStation(){return moveArm(-1.55).beforeStarting(retractBoom());}
 
   public boolean getAtGoal(){
     return Math.abs(getController().getGoal().position-getMeasurement())<getController().getPositionTolerance();

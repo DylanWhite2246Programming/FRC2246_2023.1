@@ -4,12 +4,15 @@
 
 package frc.robot;
 
+import frc.robot.Constants.AutonControllers;
 import frc.robot.Team2246.Drivestation;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.Boom;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PowerAndPneumatics;
 import frc.robot.subsystems.Vision;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -38,18 +41,14 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     drivetrain.resetPose();
+    AutonControllers.ramsetController.setTolerance(new Pose2d(.005,.005,new Rotation2d(.05)));
     drivetrain.setDefaultCommand(drivetrain.driveKinematically(drivestation::getLeftY, drivestation::getRightX, ()->true));
     // Configure the trigger bindings
     configureBindings();
     //chooser.addOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
-    chooser.setDefaultOption("onegamepiece", Autos.oneGameAndTaxi(drivetrain, boom));
-    //chooser.addOption("autoleveltest", 
-    //  drivetrain.run(()->drivetrain.driveVolts(-1.7, -1.7))
-    //    .until(()->{return Math.abs(drivetrain.getPitch())>14;})
-    //    .withTimeout(5)
-    //  .andThen(new AutoLevel(drivetrain))
-    //);
-    chooser.addOption("autolevel?", Autos.oneGameAndLevel(drivetrain, boom));
+    chooser.addOption("onegamepiece", Autos.oneGameNoCable(drivetrain, boom));
+    chooser.addOption("twogamepiece", Autos.twoGame(drivetrain, boom));
+    chooser.addOption("scoreandautolevel?", Autos.oneGameAndLevel(drivetrain, boom));
     chooser.addOption("oneGameCable", Autos.oneGameCable(drivetrain, boom));
     chooser.addOption("non", null);
     tab.add("sendable", chooser).withSize(2, 1);
@@ -68,7 +67,7 @@ public class RobotContainer {
     //new Trigger(()->drivestation.getRightPov()==90).whileTrue(new alignToGamePiece(drivetrain, cam, 1, drivestation::getLeftY));
     //new Trigger(()->drivestation.getRightPov()==90).whileTrue(drivetrain.allignToGamePiece(drivestation::getLeftY));
     //new Trigger(()->drivestation.getRightPov()==180).whileTrue(new alignToGamePiece(drivetrain, cam, 2, ()->0));
-    drivestation.ls1().onTrue(boom.moveToZeroPosition());
+    drivestation.ls1().onTrue(boom.moveToFrontQuePosition());
     drivestation.ls3().onTrue(boom.moveToFrontIntakePosition());
     drivestation.ls2().onTrue(boom.moveToBackIntakePosition());
     drivestation.ls4().onTrue(boom.openClaw());

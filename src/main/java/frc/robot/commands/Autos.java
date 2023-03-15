@@ -7,6 +7,7 @@ package frc.robot.commands;
 import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
@@ -50,11 +51,63 @@ public final class Autos {
     //);
   }
 
-  public static CommandBase oneGameAndTaxi(Drivetrain drive, Boom boom){
-    drive.resetPose(); double trajectoryToleranceFuckery = .2;
+  public static CommandBase twoGame(Drivetrain drive, Boom boom){
+    drive.resetPose(); //double trajectoryToleranceFuckery = .2;
     Pose2d initPose = drive.getPose2d();
     Pose2d placementPose = new Pose2d(
-      initPose.getX()-.3-trajectoryToleranceFuckery, 
+      initPose.getX()-.35, 
+      initPose.getY(), 
+      initPose.getRotation()
+    );
+    Pose2d conePose = new Pose2d(
+      4.534+.32, 
+      -.65481-.2, 
+      new Rotation2d(-.2583+0)
+    );
+    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
+      initPose,  
+      List.of(), 
+      placementPose, 
+      AutonControllers.revTrajectoryConfig
+    );
+    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+      placementPose, 
+      List.of(), 
+      conePose, 
+      AutonControllers.trajectoryConfig
+    );
+    Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(
+      conePose, 
+      List.of(), 
+      new Pose2d(
+        placementPose.getX()-.2,
+        placementPose.getY()-.1,
+        new Rotation2d()),
+      AutonControllers.revTrajectoryConfig
+    );
+    return new SequentialCommandGroup(
+      boom.closeClaw(),
+      boom.resetController(),
+      boom.moveToBackTopPosition(),
+      ramsetGenerator(drive, trajectory1),
+      drive.stopCommand(),
+      boom.openClaw(),
+      new WaitCommand(.5),
+      ramsetGenerator(drive, trajectory2).alongWith(boom.moveToFrontIntakePosition()),
+      drive.stopCommand(),
+      boom.closeClaw(),
+      new WaitCommand(.5),
+      ramsetGenerator(drive, trajectory3).alongWith(boom.moveToBackMiddlePostion()),
+      boom.openClaw()
+      //new WaitCommand(.5),
+      //boom.moveToZeroPosition()
+    );
+  }
+  public static CommandBase oneGameNoCable(Drivetrain drive, Boom boom){
+    drive.resetPose(); //double trajectoryToleranceFuckery = .2;
+    Pose2d initPose = drive.getPose2d();
+    Pose2d placementPose = new Pose2d(
+      initPose.getX()-.3, 
       initPose.getY(), 
       initPose.getRotation()
     );
@@ -67,7 +120,7 @@ public final class Autos {
     Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
       placementPose, 
       List.of(), 
-      new Pose2d(initPose.getX()+4+trajectoryToleranceFuckery, initPose.getY(), initPose.getRotation()), 
+      new Pose2d(initPose.getX()+4, initPose.getY(), initPose.getRotation()), 
       AutonControllers.trajectoryConfig
     );
     return new SequentialCommandGroup(
@@ -84,10 +137,10 @@ public final class Autos {
   }
 
   public static CommandBase oneGameCable(Drivetrain drive, Boom boom){
-    drive.resetPose(); double trajectoryToleranceFuckery = .2;
+    drive.resetPose(); //double trajectoryToleranceFuckery = .2;
     Pose2d initPose = drive.getPose2d();
     Pose2d placementPose = new Pose2d(
-      initPose.getX()-.3-trajectoryToleranceFuckery, 
+      initPose.getX()-.3,//-trajectoryToleranceFuckery, 
       initPose.getY(), 
       initPose.getRotation()
     );
@@ -97,13 +150,13 @@ public final class Autos {
       placementPose, 
       AutonControllers.revTrajectoryConfig
     );
-    double yOffSet = .3*(DriverStation.getAlliance()==Alliance.Red?1:-1);
+    double yOffSet = .3*(DriverStation.getAlliance()==Alliance.Red?-1:1);
     Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
       placementPose, 
       List.of(
         new Translation2d(initPose.getX()+1,initPose.getY()+yOffSet)
       ),
-      new Pose2d(initPose.getX()+4+trajectoryToleranceFuckery, initPose.getY()+yOffSet, initPose.getRotation()), 
+      new Pose2d(initPose.getX()+4/*+trajectoryToleranceFuckery*/, initPose.getY()+yOffSet, initPose.getRotation()), 
       AutonControllers.trajectoryConfig
     );
     return new SequentialCommandGroup(

@@ -6,6 +6,8 @@ package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -58,9 +60,9 @@ public final class Constants {
     public static final PIDController turnController = 
       new PIDController(.15, 0, 0);
     public static final RamseteController ramsetController = 
-      new RamseteController(2, .7);
-    public static final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(1, .75);
-    public static final TrajectoryConfig revTrajectoryConfig = new TrajectoryConfig(1, .75).setReversed(true);
+      new RamseteController(2, .7);;
+    public static final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(1.75, 1.5);
+    public static final TrajectoryConfig revTrajectoryConfig = new TrajectoryConfig(1.75, 1.5).setReversed(true);
   }
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
